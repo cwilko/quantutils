@@ -1,6 +1,10 @@
 import random
 import pandas as pd
+<<<<<<< HEAD
 from tradeFramework.api import TradeEngine
+=======
+from tradeFramework import TradeEngine
+>>>>>>> 986f8a12550063cbe2f4eee9aa13aabe6e2ebc25
 
 def gap_close(x, txCost):
     profit = 0.0
