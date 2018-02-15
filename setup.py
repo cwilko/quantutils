@@ -40,5 +40,7 @@ setup(
     #
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
 
+    py_modules=["finance", "getFiles"],
+
    
 )
