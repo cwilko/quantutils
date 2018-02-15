@@ -38,9 +38,9 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
+    #packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
 
-    py_modules=["finance", "getFiles"],
+    py_modules=["finance.py", "getFiles"],
 
    
 )
