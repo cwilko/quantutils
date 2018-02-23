@@ -117,15 +117,15 @@ def splitAbs(data, testSetLength):
 import plotly
 import plotly.offline as py
 from plotly.tools import FigureFactory as FF
-#from plotly import tools as pt
 from plotly.graph_objs import *
-
-plotly.offline.init_notebook_mode() # run at the start of every ipython notebook
 
 ##
 ## Visualise
 ##
 def visualise(data, periods, count):
+
+    plotly.offline.init_notebook_mode() # run at the start of every ipython notebook
+
     csticks = data.values[0:count:,:periods*4].ravel().reshape(-1,4)
 
     fig = FF.create_candlestick(csticks[:,0], csticks[:,1], csticks[:,2], csticks[:,3])
