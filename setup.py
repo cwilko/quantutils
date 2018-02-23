@@ -40,8 +40,7 @@ setup(
     #
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
 
-
-    install_requires=['git+https://github.com/locke105/pylogmet.git'],
+    dependency_links=['git+https://github.com/locke105/pylogmet.git'],
 
    
 )
