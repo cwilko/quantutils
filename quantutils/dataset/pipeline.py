@@ -1,4 +1,5 @@
 import pandas
+import numpy
 
 ## 
 ## Merge data
