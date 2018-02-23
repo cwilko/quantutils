@@ -146,3 +146,27 @@ def save_csv(data, filename):
     print "Saved data to " + filename
     
     return data
+
+##
+## Load Data
+##
+
+# TODO _ CHECK WE ARENT USING FIRST ROW AS HEADER
+def loadRawData(datasource, dataset, srcPath, infile):
+
+    if infile.lower().startswith(dataset["name"].lower()):
+
+        print "Adding " + infile + " to " + dataset["name"] + " table"
+
+        ## Load RAW data (assume CSV)
+        return pandas.read_csv(srcPath + infile, 
+                                  index_col=datasource["index_col"], 
+                                  parse_dates=datasource["parse_dates"], 
+                                  header=None,
+                                  names=["Date", "Time", "Open", "High", "Low", "Close"],
+                                  usecols=range(0,6),
+                                  skiprows=datasource["skiprows"],
+                                  dayfirst=datasource["dayfirst"]
+                                 )        
+    else:
+        return None
