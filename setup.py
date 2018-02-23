@@ -14,7 +14,7 @@ setup(
     # There are some restrictions on what makes a valid project name
     # specification here:
     # https://packaging.python.org/specifications/core-metadata/#name
-    name='finutils',  # Required
+    name='quantutils',  # Required
 
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
@@ -27,7 +27,7 @@ setup(
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
-    description='A set of python financial tools',  # Required
+    description='A set of python quantative finance tools',  # Required
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -38,9 +38,9 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    #packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
 
-    py_modules=["finance", "getFiles"],
+    #py_modules=["core", "ml", "pipeline"],
 
    
 )
