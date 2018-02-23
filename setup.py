@@ -1,6 +1,9 @@
 
 from setuptools import setup, find_packages
 
+import os
+
+os.system('pip install git+https://github.com/locke105/pylogmet.git')
 
 setup(
     # This is the name of your project. The first time you publish this
@@ -39,8 +42,6 @@ setup(
     #   py_modules=["my_module"],
     #
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
-
-    dependency_links=['git+https://github.com/locke105/pylogmet.git'],
 
    
 )
