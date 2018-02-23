@@ -51,7 +51,7 @@ class ObjectStore:
         self.endpoint_url = endpoint_url
         self.token = token
         
-    def put_file(self, container, local_file_name):  
+    def put_file(self, container, local_file_name, filename):  
         """This functions returns a StringIO object containing
         the file content from Bluemix Object Storage V3."""
 
