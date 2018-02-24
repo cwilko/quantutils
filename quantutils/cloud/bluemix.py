@@ -104,12 +104,12 @@ class MarketInsights:
         payload = json.loads(resp.text)[0]        
         return pandas.DataFrame(payload["data"], index=pandas.DatetimeIndex(payload["index"]))
 
-    def csvtojson(csv, market, pipeline_id):
+    def csvtojson(self, csv, market, pipeline_id):
         obj = {"id":"".join([pipeline_id,"_",market]), "market":market, "pipelineID":pipeline_id}
         obj["data"] = csv.values.tolist()
         obj["index"] = csv.index.format()
         return json.dumps(obj)
 
-    def jsontocsv(jsonObj):
+    def jsontocsv(self, jsonObj):
         return pandas.DataFrame(jsonObj["data"], index=pandas.DatetimeIndex(jsonObj["index"]))
     
