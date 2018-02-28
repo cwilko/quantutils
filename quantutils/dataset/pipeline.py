@@ -114,6 +114,12 @@ def split(data, train=.6, val=.2, test=.2):
 def splitAbs(data, testSetLength):
     return [data[:-(testSetLength)], data[-(testSetLength):]]
 
+##
+## Interleave two datasets 
+##
+def interleave(data1, data2, keepIndex=False):
+    return pandas.concat([spy,dow]).sort_index().reset_index(drop=not keepIndex)
+
 import plotly
 import plotly.offline as py
 from plotly.tools import FigureFactory as FF

@@ -4,6 +4,7 @@ from setuptools import setup, find_packages
 import os
 
 os.system('pip install git+https://github.com/locke105/pylogmet.git')
+os.system('pip install plotly')
 
 setup(
     # This is the name of your project. The first time you publish this
