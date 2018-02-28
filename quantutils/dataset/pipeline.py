@@ -118,7 +118,7 @@ def splitAbs(data, testSetLength):
 ## Interleave two datasets 
 ##
 def interleave(data1, data2, keepIndex=False):
-    return pandas.concat([spy,dow]).sort_index().reset_index(drop=not keepIndex)
+    return pandas.concat([data1,data2]).sort_index().reset_index(drop=not keepIndex)
 
 import plotly
 import plotly.offline as py
