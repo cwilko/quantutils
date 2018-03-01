@@ -120,6 +120,21 @@ def splitAbs(data, testSetLength):
 def interleave(data1, data2, keepIndex=False):
     return pandas.concat([data1,data2]).sort_index().reset_index(drop=not keepIndex)
 
+##
+## (De)Interleave two datasets 
+##
+def deinterleave(data):
+    data1 = data[::2]
+    data2 = data[1::2]
+    return [pandas.DataFrame(data1), pandas.DataFrame(data2)]
+
+##
+## Get a Dataframe that has the index intersect of two input Dataframes
+##
+def intersect(data1, data2):
+    isect = data1.index.intersection(data2.index)
+    return [data1.loc[isect], data2.loc[isect], isect]
+
 import plotly
 import plotly.offline as py
 from plotly.tools import FigureFactory as FF

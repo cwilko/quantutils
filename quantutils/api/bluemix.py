@@ -7,8 +7,6 @@ from io import StringIO
 import requests
 import json
 import logmet
-import pandas
-import pytz
 
 def get_metrics_client(metrics_cred):
     #metrics = logmet.Logmet(
@@ -71,47 +69,3 @@ class ObjectStore:
         resp = requests.get(url=url, headers=headers)
         return StringIO(resp.text)
     
-class MarketInsights:
-    
-    def __init__(self, credentials_file):
-        credentials = json.load(open(credentials_file))
-        self.credentials = credentials
-        
-    def put_dataset(self, dataset, debug=False):
-        headers = { \
-                   'X-IBM-Client-Id': self.credentials["clientId"], \
-                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
-                   'content-type': 'application/json' \
-                  }        
-        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/datasets"])
-        resp = requests.put(url=url, headers=headers, data=dataset)  
-        if debug:
-            print resp.text
-        return json.loads(resp.text)
-    
-    def get_dataset(self, market, pipelineId, debug=False):        
-        headers = { \
-                   'X-IBM-Client-Id': self.credentials["clientId"], \
-                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
-                   'accept': 'application/json' \
-                  }        
-        query = { \
-                 'where': { \
-                          'id': "".join([pipelineId,"_",market]), \
-                          } \
-                }
-        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/datasets?filter=",json.dumps(query)])
-        resp = requests.get(url=url, headers=headers) 
-        if debug: 
-            print resp.text
-        return json.loads(resp.text)[0]     
-
-    def csvtojson(self, csv, market, pipeline_id):
-        obj = {"id":"".join([pipeline_id,"_",market]), "market":market, "pipelineID":pipeline_id}
-        obj["data"] = csv.values.tolist()
-        obj["tz"] = csv.index.tz.zone
-        obj["index"] = [date.isoformat() for date in csv.index.tz_localize(None)] # Remove locale 
-        return json.dumps(obj)
-
-    def jsontocsv(self, jsonObj):
-        return pandas.DataFrame(jsonObj["data"], index=pandas.DatetimeIndex(jsonObj["index"], name="Date_Time", tz=pytz.timezone(jsonObj["tz"])))   
