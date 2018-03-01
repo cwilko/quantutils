@@ -46,25 +46,27 @@ class MarketInsights:
         if (throttle is not None):
           i = 0
           for j in range(throttle, len(data)+throttle, throttle):
+            print "".join(["Sending chunk ", str(j/throttle)," of ", str((len(data)/throttle)+1)])
             res = self.put_predictions(data[i:j], market, modelId, throttle=None, debug=debug)
             if ("error" in res):
               return res
             time.sleep(sleep)
             i = j
+        else:
 
-        ## POST Prediction object to API
-        data = Predictions.csvtojson(data, market, modelId)
-        headers = { \
-                   'X-IBM-Client-Id': self.credentials["clientId"], \
-                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
-                   'content-type': 'application/json' \
-                  }        
-        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions"])
-        resp = requests.post(url=url, headers=headers, data=data)  
+          ## POST Prediction object to API
+          data = Predictions.csvtojson(data, market, modelId)
+          headers = { \
+                     'X-IBM-Client-Id': self.credentials["clientId"], \
+                     'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                     'content-type': 'application/json' \
+                    }        
+          url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions"])
+          resp = requests.post(url=url, headers=headers, data=data)  
 
-        if debug:
-            print resp.text
-        return json.loads(resp.text)
+          if debug:
+              print resp.text
+          return json.loads(resp.text)
 
     def get_predictions(self, market, modelId, start, end, debug=False):
         headers = { \
