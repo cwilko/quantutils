@@ -3,6 +3,7 @@ import pytz
 import json
 import requests
 import time
+import dateutil.parser as parser
 
 class MarketInsights:
     
@@ -28,7 +29,9 @@ class MarketInsights:
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
                    'accept': 'application/json' \
-                  }        
+                  } 
+
+        # TODO eliminate id, no need.       
         query = { \
                  'where': { \
                           'id': "".join([pipelineId,"_",market]), \
@@ -68,17 +71,15 @@ class MarketInsights:
               print resp.text
           return json.loads(resp.text)
 
-    def get_predictions(self, market, modelId, start, end, debug=False):
+    def get_predictions(self, market, modelId, start=None, end=None, debug=False):
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
                    'accept': 'application/json' \
-                  }        
-        query = { \
-                 'where': { \
-                          'id': "".join([modelId,"_",market]), \
-                          } \
-                }
+                  }
+
+        query = Predictions.getQuery(market, modelId, start, end)
+
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions?filter=",json.dumps(query)])
         resp = requests.get(url=url, headers=headers) 
         if debug: 
@@ -113,4 +114,25 @@ class Predictions:
 
     @staticmethod
     def jsontocsv(jsonObj):
-        return pandas.DataFrame(jsonObj["data"], index=pandas.DatetimeIndex(jsonObj["index"], name="Date_Time", tz=pytz.timezone(jsonObj["tz"]))) 
+        idx = pandas.DatetimeIndex([prediction["timestamp"] for prediction in jsonObj])
+        return pandas.DataFrame([prediction["data"] for prediction in jsonObj], idx).sort_index()
+
+    @staticmethod
+    def getQuery(market, modelId, start, end):
+        query = { \
+          'where': { \
+            'market': market, \
+            'model_id': modelId \
+          } \
+        }
+
+        if (start is not None and end is not None):
+          query["where"]["timestamp"] = { 'between': [parser.parse(start).isoformat(), parser.parse(end).isoformat()] }
+        else:            
+          if (start is not None):
+            query["where"]["timestamp"] = { 'gte':parser.parse(start).isoformat() }
+
+          if (end is not None):
+            query["where"]["timestamp"] = { 'lte':parser.parse(end).isoformat() }
+
+        return query

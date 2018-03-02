@@ -103,7 +103,7 @@ def normaliseCandlesticks(data, allowZero=True):
 ##
 ## Split (Train/Val/Test)
 ##
-def split(data, train=.6, val=.2, test=.2):
+def splitRows(data, train=.6, val=.2, test=.2):
     idx = numpy.arange(0,len(data)) / float(len(data))
     msk1 = data[idx<train]
     msk2 = data[(idx>=train) & (idx<(train + val))]
@@ -111,8 +111,12 @@ def split(data, train=.6, val=.2, test=.2):
     return [msk1, msk2, msk3]
 
 ## Split with absolute value (of test set)
-def splitAbs(data, testSetLength):
+def splitRowsAbs(data, testSetLength):
     return [data[:-(testSetLength)], data[-(testSetLength):]]
+
+## Split columns after column number (used for separating features/classes)
+def splitCol(data, col_num):
+    return data.values[:,:col_num], data.values[:,col_num:]
 
 ##
 ## Interleave two datasets 
