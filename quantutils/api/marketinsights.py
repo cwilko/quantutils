@@ -86,6 +86,31 @@ class MarketInsights:
             print resp.text
         return Predictions.jsontocsv(json.loads(resp.text))
 
+    def put_model(self, data,debug=False):
+        headers = { \
+                   'X-IBM-Client-Id': self.credentials["clientId"], \
+                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                   'content-type': 'application/json' \
+                  }        
+        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/models"])
+        resp = requests.put(url=url, headers=headers, data=json.dumps(data))  
+        if debug:
+            print resp.text
+        return json.loads(resp.text)
+    
+    def get_model(self, modelId, debug=False):        
+        headers = { \
+                   'X-IBM-Client-Id': self.credentials["clientId"], \
+                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                   'accept': 'application/json' \
+                  }        
+        query = { 'where': { 'model_id': modelId } }    
+        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/models?filter=",json.dumps(query)])
+        resp = requests.get(url=url, headers=headers) 
+        if debug: 
+            print resp.text
+        return json.loads(resp.text)
+
 class Dataset:
 
     @staticmethod
