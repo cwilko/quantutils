@@ -3,6 +3,7 @@ import pytz
 import json
 import requests
 import time
+import hashlib
 import dateutil.parser as parser
 
 class MarketInsights:
@@ -65,7 +66,7 @@ class MarketInsights:
                      'content-type': 'application/json' \
                     }        
           url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions"])
-          resp = requests.post(url=url, headers=headers, data=data)  
+          resp = requests.put(url=url, headers=headers, data=data)  
 
           if debug:
               print resp.text
@@ -131,6 +132,7 @@ class Predictions:
     def csvtojson(data, market, modelId):
         data.index = data.index.tz_localize(None)
         obj = [{ \
+          "id": hashlib.md5("".join([modelId,"_",market,"_",i.isoformat()])).hexdigest(), \
           "market":market, \
           "model_id":modelId, \
           "timestamp":i.isoformat(), \
