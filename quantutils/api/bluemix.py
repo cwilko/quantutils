@@ -8,15 +8,6 @@ import requests
 import json
 import logmet
 
-def get_metrics_client(metrics_cred):
-    #metrics = logmet.Logmet(
-    #    logmet_host='metrics.ng.bluemix.net',
-    #    logmet_port=9095,
-    #    space_id='xxx',
-    #    token='xxx'
-    #)
-    return
-
 def get_logging_client(logging_cred):
     return logmet.Logmet(
         logmet_host=logging_cred['logmet_host'],
@@ -24,6 +15,19 @@ def get_logging_client(logging_cred):
         space_id=logging_cred['space_id'],
         token=logging_cred['token']
     )
+
+class Metrics:
+    def __init__(self, credentials_file):
+        self.credentials = json.load(open(credentials_file))
+
+    def send(self, data):
+        headers = {}
+        headers['Content-Type'] = 'application/json'
+        headers['x-auth-scope-id'] = ''.join(['s-', self.credentials['space_id']])
+        headers['x-auth-user-token'] = ''.join(['apikey ', self.credentials['token']])
+        resp = requests.post(url=self.credentials['host'], headers=headers, data=json.dumps(data) )
+        return resp
+
 
 class ObjectStore:
     
