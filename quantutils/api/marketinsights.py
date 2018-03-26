@@ -44,18 +44,19 @@ class MarketInsights:
             print resp.text
         return Dataset.jsontocsv(json.loads(resp.text)[0])
 
-    def put_predictions(self, data, market, modelId, throttle=None, sleep=2, debug=False):
+    def put_predictions(self, data, market, modelId, throttle=10, sleep=2, debug=False, update=False):
 
         ## Throttle API calls (throttle = Number of calls/sec)
         if (throttle is not None):
           i = 0
           for j in range(throttle, len(data)+throttle, throttle):
             print "".join(["Sending chunk ", str(j/throttle)," of ", str((len(data)/throttle)+1)])
-            res = self.put_predictions(data[i:j], market, modelId, throttle=None, debug=debug)
+            res = self.put_predictions(data[i:j], market, modelId, throttle=None, debug=debug, update=update)
             if ("error" in res):
               return res
             time.sleep(sleep)
             i = j
+          return {"success": True}
         else:
 
           ## POST Prediction object to API
@@ -65,8 +66,16 @@ class MarketInsights:
                      'X-IBM-Client-Secret': self.credentials["clientSecret"], \
                      'content-type': 'application/json' \
                     }        
-          url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions"])
-          resp = requests.put(url=url, headers=headers, data=data)  
+                     
+          if (update):            
+            url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions"])
+            for prediction in data:               
+              resp = requests.put(url=url, headers=headers, data=json.dumps(prediction))
+              if debug:
+                print resp.text 
+          else:
+            url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions"])
+            resp = requests.post(url=url, headers=headers, data=json.dumps(data))
 
           if debug:
               print resp.text
@@ -86,6 +95,27 @@ class MarketInsights:
         if debug: 
             print resp.text
         return Predictions.jsontocsv(json.loads(resp.text))
+
+    def delete_predictions(self, market, modelId, debug=False, update=False):
+          
+        headers = { \
+                   'X-IBM-Client-Id': self.credentials["clientId"], \
+                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                   'content-type': 'application/json' \
+                  }
+        
+        data = Predictions.csvtojson(self.get_predictions(market, modelId, debug=debug), market, modelId)
+        if (len(data)>0):
+          for prediction in data:
+            url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions/", prediction["id"]])
+            resp = requests.delete(url=url, headers=headers, data=json.dumps(prediction))
+            if debug:
+                print prediction
+                print resp.text
+
+          return resp
+        else:
+          return []
 
     def put_model(self, data,debug=False):
         headers = { \
@@ -137,7 +167,7 @@ class Predictions:
           "model_id":modelId, \
           "timestamp":i.isoformat(), \
           "data":data.loc[i].values.tolist()} for i in data.index]
-        return json.dumps(obj)
+        return obj
 
     @staticmethod
     def jsontocsv(jsonObj):
