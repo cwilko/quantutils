@@ -134,9 +134,8 @@ class MarketInsights:
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
                    'accept': 'application/json' \
-                  }        
-        query = { 'where': { 'model_id': modelId } }    
-        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/models?filter=",json.dumps(query)])
+                  }         
+        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/models/", modelId])
         resp = requests.get(url=url, headers=headers) 
         if debug: 
             print resp.text
