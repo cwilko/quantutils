@@ -24,7 +24,11 @@ class Model():
         # Network bias
         BIAS = self.NTWK_CNF["bias"]
 
+        # Reset graph and seeds
         tf.reset_default_graph()
+        np.random.seed(SEED)
+        tf.set_random_seed(SEED)
+
         # This is where training samples and labels are fed to the graph.
         # These placeholder nodes will be fed a batch of training data at each
         # training step, which we'll write once we define the graph structure.
@@ -121,6 +125,7 @@ class Model():
                 s.as_default()
                 
                 # Turn on determinism for a set of tf variables/object instances (N.B. also need to set SEED on variables)
+                np.random.seed(SEED)
                 tf.set_random_seed(SEED)
                             
                 # Initialize all the variables we defined above.
