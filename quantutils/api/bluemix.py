@@ -8,7 +8,10 @@ import requests
 import json
 import logmet
 
-def get_logging_client(logging_cred):
+def get_logging_client(credentials_file):
+
+    logging_cred = json.load(open(credentials_file))
+
     return logmet.Logmet(
         logmet_host=logging_cred['logmet_host'],
         logmet_port=logging_cred['logmet_port'],
