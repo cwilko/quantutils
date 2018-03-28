@@ -51,7 +51,7 @@ def sample(training_set, method="RANDOM", prop=.9, loo=0, boost = []):
         sample = np.random.choice(idx, len(training_set), replace=True, p=boost)
         return pd.DataFrame(training_set.values[sample,:]), training_set[~np.in1d(idx, sample)]
 
-def bootstrapTrain(model, training_set, test_set, lamda, iterations, threshold, debug=False):
+def bootstrapTrain(model, training_set, test_set, lamda, iterations, threshold=0, debug=False):
 
     metrics = {
         "train_loss":[],
