@@ -8,16 +8,31 @@ import requests
 import json
 import logmet
 
-def get_logging_client(credentials_file):
+class Logger:
+    def __init__(self, appname, credentials_file):
 
-    logging_cred = json.load(open(credentials_file))
+        self.appname = appname
+        logging_cred = json.load(open(credentials_file))
+        self.log = logmet.Logmet(
+            logmet_host=logging_cred['logmet_host'],
+            logmet_port=logging_cred['logmet_port'],
+            space_id=logging_cred['space_id'],
+            token=logging_cred['token']
+        )
 
-    return logmet.Logmet(
-        logmet_host=logging_cred['logmet_host'],
-        logmet_port=logging_cred['logmet_port'],
-        space_id=logging_cred['space_id'],
-        token=logging_cred['token']
-    )
+    def info(self, msg):
+        print "".join(["INFO: ", msg])
+        self.log.emit_log({'app_name': self.appname,'type': 'info','message': msg})
+
+
+    def error(self, msg):
+        print "".join(["ERROR: ", msg])
+        self.log.emit_log({'app_name': self.appname,'type': 'error','message': msg})
+
+
+    def debug(self, msg):
+        print "".join(["DEBUG: ", msg])
+        self.log.emit_log({'app_name': self.appname,'type': 'debug','message': msg})
 
 class Metrics:
     def __init__(self, credentials_file):
