@@ -96,7 +96,7 @@ class MarketInsights:
             print resp.text
         return Predictions.jsontocsv(json.loads(resp.text))
 
-    def delete_predictions(self, market, modelId, debug=False, update=False):
+    def delete_predictions(self, market, modelId, start=None, end=None, debug=False, update=False):
           
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
@@ -104,7 +104,7 @@ class MarketInsights:
                    'content-type': 'application/json' \
                   }
         
-        data = Predictions.csvtojson(self.get_predictions(market, modelId, debug=debug), market, modelId)
+        data = Predictions.csvtojson(self.get_predictions(market, modelId, start, end, debug), market, modelId)
         if (len(data)>0):
           for prediction in data:
             url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions/", prediction["id"]])
