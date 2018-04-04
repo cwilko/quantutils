@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import tensorflow as tf
 import quantutils.model.utils as mlutils
@@ -135,7 +136,7 @@ class Model():
                 train_loss, train_precision, train_recall, train_f, _ = self.predict(train_dict, threshold)
 
                 if (train_loss < self.OPT_CNF['training_loss_error_case']):
-                    print ".",
+                    print('.', end='')
                     metrics["train_loss"].append(train_loss)
                     metrics["train_precision"].append(train_precision)
                     metrics["train_recall"].append(train_recall)
@@ -179,7 +180,7 @@ class Model():
             "test_predictions": metrics["test_predictions"],
         }
         
-        print ".",
+        print(".", end='')
         if debug:
             print("Iterations : %d Lambda : %.2f, Threshold : %.2f" % (iterations, val_dict['lamda'], threshold))
             print("Training loss : %.2f+/-%.2f, precision : %.2f+/-%.2f, recall : %.2f+/-%.2f, F : %.2f+/-%.2f" % 

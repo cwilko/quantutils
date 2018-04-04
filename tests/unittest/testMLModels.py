@@ -1,4 +1,6 @@
 import unittest
+from __future__ import print_function
+
 import numpy as np
 
 import quantutils.dataset.pipeline as ppl
@@ -21,7 +23,7 @@ class MLModelTestCase(unittest.TestCase):
 		# Get dataset from MI API #
 		#
 
-		print "Loading data..."
+		print("Loading data...")
 		mi = MarketInsights('cred/MIOapi_cred.json')
 
 		self.CONFIG = mi.get_model(MODEL_ID)
@@ -44,7 +46,7 @@ class MLModelTestCase(unittest.TestCase):
 		NUM_LABELS = 2
 		TRN_CNF = self.CONFIG['training']
 
-		print "Creating model..."
+		print("Creating model...")
 		# Create ML model
 		ffnn = Model(NUM_FEATURES, NUM_LABELS, self.CONFIG)
 
@@ -52,14 +54,14 @@ class MLModelTestCase(unittest.TestCase):
 		## BOOTSTRAP TRAINING
 		##
 
-		print "Training",
+		print("Training", end='')
 		_, test_y = ppl.splitCol(self.test_set, NUM_FEATURES)
 		results = mlutils.bootstrapTrain(ffnn, self.training_set, self.test_set, TRN_CNF['lamda'], TRN_CNF['iterations'], TRN_CNF['threshold'], True)
 		predictions =  np.nanmean(results["test_predictions"], axis=0)
 		result = mlutils.evaluate(predictions, test_y, .0)
 
-		print "".join(["Received : ", str(result)])
-		print "Expected : (0.53023255, 1.0, 0.6930091104902956)"
+		print("".join(["Received : ", str(result)]))
+		print("Expected : (0.53023255, 1.0, 0.6930091104902956)")
 
 		self.assertTrue(np.allclose(result, np.array([0.53023255, 1.0, 0.6930091104902956]))) # Local results
 
@@ -69,21 +71,21 @@ class MLModelTestCase(unittest.TestCase):
 		NUM_LABELS = 2
 		TRN_CNF = self.CONFIG['training']
 
-		print "Creating model..."
+		print("Creating model...")
 		# Create ML model
 		ffnn = Model(NUM_FEATURES, NUM_LABELS, self.CONFIG)
 
 		##
 		## BOOTSTRAP TRAINING
 		##
-		print "Training",
+		print("Training", end='')
 		_, test_y = ppl.splitCol(self.test_set, NUM_FEATURES)
 		results = mlutils.boostingTrain(ffnn, self.training_set, self.test_set, TRN_CNF['lamda'], TRN_CNF['iterations'], True)
 		predictions =  np.nanmean(results["test_predictions"], axis=0)
 		result = mlutils.evaluate(predictions, test_y, .0)
 
-		print "".join(["Received : ", str(result)])
-		print "Expected : (0.51627904, 1.0, 0.6809815707344107)"
+		print("".join(["Received : ", str(result)]))
+		print("Expected : (0.51627904, 1.0, 0.6809815707344107)")
 
 		self.assertTrue(np.allclose(result, np.array([0.51627904, 1.0, 0.6809815707344107]))) # Local results
 

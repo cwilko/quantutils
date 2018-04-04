@@ -6,7 +6,7 @@ import numpy
 ##
 
 def merge(newData, existingData):
-    print "Merging data..."
+    print("Merging data...")
     return existingData.combine_first(newData)
 
 ##
@@ -82,7 +82,7 @@ def encode(data, encoding):
 ##
 import pytz
 def localize(data, sourceTZ, targetTZ):
-    print "Converting from " + sourceTZ + " to " + targetTZ
+    print("Converting from " + sourceTZ + " to " + targetTZ)
     timezone = pytz.timezone(targetTZ)
     data.index = data.index.tz_localize(sourceTZ, ambiguous='NaT').tz_convert(timezone)
     return data
@@ -161,12 +161,12 @@ def visualise(data, periods, count):
 ##
 def save_hdf(data, bucket, hdfStore):
     hdfStore.put(bucket, data, format='table')
-    print "Saved data to HDFStore: /" + bucket
+    print("Saved data to HDFStore: /" + bucket)
     return data
 
 def save_csv(data, filename):
     data.to_csv( filename, mode="w", header=False, index=False)
-    print "Saved data to " + filename
+    print("Saved data to " + filename)
     
     return data
 
@@ -179,7 +179,7 @@ def loadRawData(datasource, market, srcPath, infile):
 
     if infile.lower().startswith(market["name"].lower()):
 
-        print "Adding " + infile + " to " + market["market"] + " table"
+        print("Adding " + infile + " to " + market["market"] + " table")
 
         ## Load RAW data (assume CSV)
         return pandas.read_csv(srcPath + infile, 
