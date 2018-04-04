@@ -144,12 +144,10 @@ def intersect(data1, data2):
 ##
 def visualise(data, periods, count):
 
-    import plotly
     import plotly.offline as py
     from plotly.tools import FigureFactory as FF
-    from plotly.graph_objs import *
 
-    plotly.offline.init_notebook_mode() # run at the start of every ipython notebook
+    py.init_notebook_mode() # run at the start of every ipython notebook
 
     csticks = data.values[0:count:,:periods*4].ravel().reshape(-1,4)
 
