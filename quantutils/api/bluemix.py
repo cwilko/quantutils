@@ -21,17 +21,17 @@ class Logger:
         )
 
     def info(self, msg):
-        print "".join(["INFO: ", msg])
+        print("".join(["INFO: ", msg]))
         self.log.emit_log({'app_name': self.appname,'type': 'info','message': msg})
 
 
     def error(self, msg):
-        print "".join(["ERROR: ", msg])
+        print("".join(["ERROR: ", msg]))
         self.log.emit_log({'app_name': self.appname,'type': 'error','message': msg})
 
 
     def debug(self, msg):
-        print "".join(["DEBUG: ", msg])
+        print("".join(["DEBUG: ", msg]))
         self.log.emit_log({'app_name': self.appname,'type': 'debug','message': msg})
 
 class Metrics:
@@ -80,7 +80,7 @@ class ObjectStore:
         headers = {'X-Auth-Token': self.token, 'accept': 'application/json'}
         url = "".join([self.endpoint_url, "/", container, "/", filename])
         resp = requests.put(url=url, headers=headers, data = f.read() )
-        print resp.text
+        print(resp.text)
 
     def get_file(self, container, filename):
         """This functions returns a StringIO object containing

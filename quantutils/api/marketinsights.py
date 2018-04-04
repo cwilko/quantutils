@@ -22,7 +22,7 @@ class MarketInsights:
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/datasets"])
         resp = requests.put(url=url, headers=headers, data=dataset)  
         if debug:
-            print resp.text
+            print(resp.text)
         return json.loads(resp.text)
     
     def get_dataset(self, market, pipelineId, debug=False):        
@@ -41,7 +41,7 @@ class MarketInsights:
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/datasets?filter=",json.dumps(query)])
         resp = requests.get(url=url, headers=headers) 
         if debug: 
-            print resp.text
+            print(resp.text)
         return Dataset.jsontocsv(json.loads(resp.text)[0])
 
     def put_predictions(self, data, market, modelId, throttle=10, sleep=2, debug=False, update=False):
@@ -50,7 +50,7 @@ class MarketInsights:
         if (throttle is not None):
           i = 0
           for j in range(throttle, len(data)+throttle, throttle):
-            print "".join(["Sending chunk ", str(j/throttle)," of ", str((len(data)/throttle)+1)])
+            print("".join(["Sending chunk ", str(j/throttle)," of ", str((len(data)/throttle)+1)]))
             res = self.put_predictions(data[i:j], market, modelId, throttle=None, debug=debug, update=update)
             if ("error" in res):
               return res
@@ -72,13 +72,13 @@ class MarketInsights:
             for prediction in data:               
               resp = requests.put(url=url, headers=headers, data=json.dumps(prediction))
               if debug:
-                print resp.text 
+                print(resp.text)
           else:
             url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions"])
             resp = requests.post(url=url, headers=headers, data=json.dumps(data))
 
           if debug:
-              print resp.text
+              print(resp.text)
           return json.loads(resp.text)
 
     def get_predictions(self, market, modelId, start=None, end=None, debug=False):
@@ -93,7 +93,7 @@ class MarketInsights:
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions?filter=",json.dumps(query)])
         resp = requests.get(url=url, headers=headers) 
         if debug: 
-            print resp.text
+            print(resp.text)
         return Predictions.jsontocsv(json.loads(resp.text))
 
     def delete_predictions(self, market, modelId, start=None, end=None, debug=False, update=False):
@@ -110,8 +110,8 @@ class MarketInsights:
             url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/predictions/", prediction["id"]])
             resp = requests.delete(url=url, headers=headers, data=json.dumps(prediction))
             if debug:
-                print prediction
-                print resp.text
+                print(prediction)
+                print(resp.text)
 
           return resp
         else:
@@ -126,7 +126,7 @@ class MarketInsights:
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/models"])
         resp = requests.put(url=url, headers=headers, data=json.dumps(data))  
         if debug:
-            print resp.text
+            print(resp.text)
         return json.loads(resp.text)
     
     def get_model(self, modelId, debug=False):        
@@ -138,7 +138,7 @@ class MarketInsights:
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/models/", modelId])
         resp = requests.get(url=url, headers=headers) 
         if debug: 
-            print resp.text
+            print(resp.text)
         return json.loads(resp.text)
 
 class Dataset:

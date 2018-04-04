@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import pandas as pd
 import quantutils.dataset.pipeline as ppl
@@ -74,7 +75,7 @@ def bootstrapTrain(model, training_set, test_set, lamda, iterations, threshold=0
 
     for i in range(0, iterations):
         
-        print ".",
+        print(".", end='')
 
         train_sample, val_sample = sample(training_set, method="BOOTSTRAP", loo=i)
 
@@ -168,7 +169,7 @@ def boostingTrain(model, training_set, test_set, lamda, iterations, debug=False)
 
     for i in range(0, iterations):
         
-        print ".",
+        print(".", end='')
 
         train_sample, val_sample = sample(training_set, method="BOOSTING", boost=boost)
 
