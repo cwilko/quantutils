@@ -139,15 +139,15 @@ def intersect(data1, data2):
     isect = data1.index.intersection(data2.index)
     return [data1.loc[isect], data2.loc[isect], isect]
 
-import plotly
-import plotly.offline as py
-from plotly.tools import FigureFactory as FF
-from plotly.graph_objs import *
-
 ##
 ## Visualise
 ##
 def visualise(data, periods, count):
+
+    import plotly
+    import plotly.offline as py
+    from plotly.tools import FigureFactory as FF
+    from plotly.graph_objs import *
 
     plotly.offline.init_notebook_mode() # run at the start of every ipython notebook
 
@@ -161,9 +161,9 @@ def visualise(data, periods, count):
 ##
 ## Save data
 ##
-def save_hdf(data, dataset, hdfStore):
-    hdfStore.put(dataset["name"], data, format='table')
-    print "Saved data to HDFStore: /" + dataset["name"]
+def save_hdf(data, bucket, hdfStore):
+    hdfStore.put(bucket, data, format='table')
+    print "Saved data to HDFStore: /" + bucket
     return data
 
 def save_csv(data, filename):
@@ -177,11 +177,11 @@ def save_csv(data, filename):
 ##
 
 # TODO _ CHECK WE ARENT USING FIRST ROW AS HEADER
-def loadRawData(datasource, dataset, srcPath, infile):
+def loadRawData(datasource, market, srcPath, infile):
 
-    if infile.lower().startswith(dataset["name"].lower()):
+    if infile.lower().startswith(market["name"].lower()):
 
-        print "Adding " + infile + " to " + dataset["name"] + " table"
+        print "Adding " + infile + " to " + market["market"] + " table"
 
         ## Load RAW data (assume CSV)
         return pandas.read_csv(srcPath + infile, 
