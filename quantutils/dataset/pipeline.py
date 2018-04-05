@@ -57,7 +57,7 @@ def toFeatureSet(data, feature_periods):
     return pandas.DataFrame(reshape(data, n),data.index[range(0,len(data),feature_periods)])
 
 def reshape(ts, n):
-    return numpy.reshape(ts.values[0:ts.values.size / n * n / ts.values.shape[1]], (ts.values.size / n, n))
+    return numpy.reshape(ts.values[0:ts.values.size // n * n // ts.values.shape[1]], (ts.values.size // n, n))
 
 ##
 ## Encode classification
