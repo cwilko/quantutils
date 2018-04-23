@@ -39,16 +39,17 @@ class Model():
 
         # The variables below hold all the trainable weights. For each, the
         # parameter defines how the variables will be initialized. 
-        Theta1 = tf.Variable( tf.truncated_normal([HIDDEN_UNITS, NUM_FEATURES], stddev=STDEV, seed=SEED))
-        Theta2 = tf.Variable( tf.truncated_normal([NUM_LABELS, HIDDEN_UNITS], stddev=STDEV, seed=SEED))
+        self.Theta1 = tf.Variable( tf.truncated_normal([HIDDEN_UNITS, NUM_FEATURES], stddev=STDEV, seed=SEED))
+        self.Theta2 = tf.Variable( tf.truncated_normal([NUM_LABELS, HIDDEN_UNITS], stddev=STDEV, seed=SEED))
         bias2 = tf.Variable(tf.constant(BIAS, shape=[NUM_LABELS]))
 
-        yhat = self.model(self.train_data_node, Theta1, Theta2, bias2)
+        yhat = self.model(self.train_data_node, self.Theta1, self.Theta2, bias2)
 
         # Change the weights by subtracting derivative with respect to that weight
+        # TODO : Check this loss function against the machine learning education.
         self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=self.train_labels_node, logits=yhat))
         # Regularization using L2 Loss function 
-        regularizer = tf.nn.l2_loss(Theta1) + tf.nn.l2_loss(Theta2)
+        regularizer = tf.nn.l2_loss(self.Theta1) + tf.nn.l2_loss(self.Theta2)
         reg = (self.lam / tf.to_float(tf.shape(self.train_labels_node)[0])) * regularizer
         loss_reg = self.loss + reg
 
@@ -94,6 +95,9 @@ class Model():
     def featureCount(self):
         return self.NUM_FEATURES
 
+    def getWeights(self):
+        return [self.Theta1.eval(), self.Theta2.eval()]
+
     def train(self, train_dict, val_dict, test_dict, threshold, iterations=50, debug=True):
         
         tf.logging.set_verbosity(tf.logging.ERROR)
@@ -113,7 +117,8 @@ class Model():
             "test_precision":[],
             "test_recall":[],
             "test_f":[],
-            "test_predictions":[]
+            "test_predictions":[],
+            "weights":[]
         }
         
         for i in range(0,iterations):
@@ -156,6 +161,9 @@ class Model():
                     metrics["test_recall"].append(test_recall)
                     metrics["test_f"].append(test_f)
                     metrics["test_predictions"] = test_predictions # return the last set of predictions ( TODO could return the one with the best val score)
+
+                    metrics["weights"].append(self.getWeights())
+
                     del s
                     break;
                 else:
@@ -178,6 +186,7 @@ class Model():
             "test_recall": {"mean":np.nanmean(metrics["test_recall"]), "std":np.nanstd(metrics["test_recall"]), "values":metrics["test_recall"]},
             "test_f": {"mean":np.nanmean(metrics["test_f"]), "std":np.nanstd(metrics["test_f"]), "values":metrics["test_f"]},
             "test_predictions": metrics["test_predictions"],
+            "weights": metrics["weights"],
         }
         
         print(".", end='')
