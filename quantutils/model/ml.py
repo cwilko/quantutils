@@ -96,7 +96,7 @@ class Model():
         return self.NUM_FEATURES
 
     def getWeights(self):
-        return [self.Theta1.eval(), self.Theta2.eval()]
+        return [self.Theta1.eval().tolist(), self.Theta2.eval().tolist()]
 
     def train(self, train_dict, val_dict, test_dict, threshold, iterations=50, debug=True):
         
