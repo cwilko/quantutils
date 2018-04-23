@@ -102,7 +102,7 @@ def bootstrapTrain(model, training_set, test_set, lamda, iterations, threshold=0
         metrics["test_recall"].append(results["test_recall"]["mean"])
         metrics["test_f"].append(results["test_f"]["mean"])
         metrics["test_predictions"].append(results["test_predictions"])
-        metrics["weights"].append(results["weights"])  
+        metrics["weights"].append(results["weights"][0]) # Because we called train() with only 1 iteration 
 
 
     results = {
@@ -207,7 +207,7 @@ def boostingTrain(model, training_set, test_set, lamda, iterations, debug=False)
         metrics["test_recall"].append(results["test_recall"]["mean"])
         metrics["test_f"].append(results["test_f"]["mean"])
         metrics["test_predictions"].append(results["test_predictions"])
-        metrics["weights"].append(results["weights"])       
+        metrics["weights"].append(results["weights"][0]) # Because we called train() with only 1 iteration       
 
     results = {
         "train_loss": {"mean":np.nanmean(metrics["train_loss"]), "std":np.nanstd(metrics["train_loss"]), "values":metrics["train_loss"]},
