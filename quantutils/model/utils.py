@@ -67,7 +67,8 @@ def bootstrapTrain(model, training_set, test_set, lamda, iterations, threshold=0
         "test_precision":[],
         "test_recall":[],
         "test_f":[],
-        "test_predictions":[]
+        "test_predictions":[],
+        "weights":[]
     }
     
     NUM_FEATURES = model.featureCount();
@@ -100,7 +101,8 @@ def bootstrapTrain(model, training_set, test_set, lamda, iterations, threshold=0
         metrics["test_precision"].append(results["test_precision"]["mean"])
         metrics["test_recall"].append(results["test_recall"]["mean"])
         metrics["test_f"].append(results["test_f"]["mean"])
-        metrics["test_predictions"].append(results["test_predictions"])  
+        metrics["test_predictions"].append(results["test_predictions"])
+        metrics["weights"].append(results["weights"])  
 
 
     results = {
@@ -117,6 +119,7 @@ def bootstrapTrain(model, training_set, test_set, lamda, iterations, threshold=0
         "test_recall": {"mean":np.nanmean(metrics["test_recall"]), "std":np.nanstd(metrics["test_recall"]), "values":metrics["test_recall"]},
         "test_f": {"mean":np.nanmean(metrics["test_f"]), "std":np.nanstd(metrics["test_f"]), "values":metrics["test_f"]},
         "test_predictions": metrics["test_predictions"],
+        "weights": metrics["weights"],
     }
 
     if debug:
@@ -158,7 +161,8 @@ def boostingTrain(model, training_set, test_set, lamda, iterations, debug=False)
         "test_precision":[],
         "test_recall":[],
         "test_f":[],
-        "test_predictions":[]
+        "test_predictions":[],
+        "weights":[]
     }
     
     NUM_FEATURES = model.featureCount()
@@ -203,8 +207,7 @@ def boostingTrain(model, training_set, test_set, lamda, iterations, debug=False)
         metrics["test_recall"].append(results["test_recall"]["mean"])
         metrics["test_f"].append(results["test_f"]["mean"])
         metrics["test_predictions"].append(results["test_predictions"])
-        
-
+        metrics["weights"].append(results["weights"])       
 
     results = {
         "train_loss": {"mean":np.nanmean(metrics["train_loss"]), "std":np.nanstd(metrics["train_loss"]), "values":metrics["train_loss"]},
@@ -220,7 +223,7 @@ def boostingTrain(model, training_set, test_set, lamda, iterations, debug=False)
         "test_recall": {"mean":np.nanmean(metrics["test_recall"]), "std":np.nanstd(metrics["test_recall"]), "values":metrics["test_recall"]},
         "test_f": {"mean":np.nanmean(metrics["test_f"]), "std":np.nanstd(metrics["test_f"]), "values":metrics["test_f"]},
         "test_predictions": metrics["test_predictions"],
-        "weights":boost
+        "weights": metrics["weights"]
     }
 
     if debug:
