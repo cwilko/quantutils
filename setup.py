@@ -5,6 +5,7 @@ import os
 
 os.system('pip install git+https://github.com/locke105/pylogmet.git')
 os.system('pip install plotly')
+os.system('pip install ibm-cos-sdk')
 
 setup(
     # This is the name of your project. The first time you publish this

@@ -4,9 +4,13 @@
 ###################
 
 from io import StringIO
+import io
 import requests
 import json
 import logmet
+import pandas as pd
+import ibm_boto3
+from ibm_botocore.client import Config
 
 class Logger:
     def __init__(self, appname, credentials_file):
@@ -90,4 +94,33 @@ class ObjectStore:
         headers = {'X-Auth-Token': self.token, 'accept': 'application/json'}
         resp = requests.get(url=url, headers=headers)
         return StringIO(resp.text)
+
+class CloudObjectStore:
     
+    def __init__(self, credentials_file):
+        credentials = json.load(open(credentials_file))
+        self.cos = self.connect(credentials)
+    
+    def connect(self, credentials):
+        return ibm_boto3.resource('s3',
+            ibm_api_key_id=credentials["apikey"],
+            ibm_service_instance_id=credentials["resource_instance_id"],
+            ibm_auth_endpoint=credentials["auth_endpoint"],
+            config=Config(signature_version='oauth'),
+            endpoint_url=credentials["service_endpoint"])
+        
+    def put(self, bucket, local_file_name, obj): 
+        self.getOrCreateBucket(bucket) 
+        self.cos.Object(bucket, obj).put(Body=open(local_file_name, 'rb'))
+
+    def get_csv(self, bucket, obj):
+        return pd.read_csv(io.BytesIO(self.cos.Object(bucket, obj).get()['Body'].read()), compression='gzip')
+
+    def getOrCreateBucket(self, bucket):
+        exists = False
+        for cosBucket in self.cos.buckets.all():
+            if (bucket == cosBucket.name): 
+                exists=True
+
+        if (not exists):
+            self.cos.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': 'us-standard'})
