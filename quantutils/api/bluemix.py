@@ -5,6 +5,7 @@
 
 from io import StringIO
 import io
+import os
 import requests
 import json
 import logmet
@@ -112,6 +113,11 @@ class CloudObjectStore:
     def put(self, bucket, local_file_name, obj): 
         self.getOrCreateBucket(bucket) 
         self.cos.Object(bucket, obj).put(Body=open(local_file_name, 'rb'))
+
+    def put_csv(self, bucket, csv, obj):
+        csv.to_csv('tmp-gz.csv', index=False, compression='gzip')
+        self.put(bucket, 'tmp-gz.csv', obj)
+        os.remove('tmp-gz.csv')
 
     def get_csv(self, bucket, obj):
         return pd.read_csv(io.BytesIO(self.cos.Object(bucket, obj).get()['Body'].read()), compression='gzip')
