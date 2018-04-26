@@ -50,7 +50,7 @@ class MarketInsights:
         if (throttle is not None):
           i = 0
           for j in range(throttle, len(data)+throttle, throttle):
-            print("".join(["Sending chunk ", str(j/throttle)," of ", str((len(data)/throttle)+1)]))
+            print("".join(["Sending chunk ", str(j//throttle)," of ", str((len(data)//throttle)+1)]))
             res = self.put_predictions(data[i:j], market, modelId, throttle=None, debug=debug, update=update)
             if ("error" in res):
               return res
@@ -96,7 +96,7 @@ class MarketInsights:
             print(resp.text)
         return Predictions.jsontocsv(json.loads(resp.text))
 
-    def delete_predictions(self, market, modelId, start=None, end=None, debug=False, update=False):
+    def delete_predictions(self, market, modelId, start=None, end=None, debug=False):
           
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
