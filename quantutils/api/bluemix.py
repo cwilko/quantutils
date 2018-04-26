@@ -3,15 +3,14 @@
 ## Bluemix Setup ##
 ###################
 
-from io import StringIO
-import io
+from io import StringIO, BytesIO
 import os
 import requests
 import json
 import logmet
 import pandas as pd
 import ibm_boto3
-from ibm_botocore.client import Config
+import ibm_botocore
 
 class Logger:
     def __init__(self, appname, credentials_file):
@@ -107,7 +106,7 @@ class CloudObjectStore:
             ibm_api_key_id=credentials["apikey"],
             ibm_service_instance_id=credentials["resource_instance_id"],
             ibm_auth_endpoint=credentials["auth_endpoint"],
-            config=Config(signature_version='oauth'),
+            config=ibm_botocore.client.Config(signature_version='oauth'),
             endpoint_url=credentials["service_endpoint"])
         
     def put(self, bucket, local_file_name, obj): 
@@ -119,8 +118,10 @@ class CloudObjectStore:
         self.put(bucket, 'tmp-gz.csv', obj)
         os.remove('tmp-gz.csv')
 
-    def get_csv(self, bucket, obj):
-        return pd.read_csv(io.BytesIO(self.cos.Object(bucket, obj).get()['Body'].read()), compression='gzip')
+    def get_csv(self, bucket, key):
+        if (not self.keyExists(bucket, key)):
+            return pd.DataFrame()
+        return pd.read_csv(BytesIO(self.cos.Object(bucket, key).get()['Body'].read()), compression='gzip')
 
     def getOrCreateBucket(self, bucket):
         exists = False
@@ -130,3 +131,15 @@ class CloudObjectStore:
 
         if (not exists):
             self.cos.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': 'us-standard'})
+
+    def keyExists(self, bucket, key):
+        exists=True
+        try:
+            self.cos.Object(bucket, key).load()
+        except ibm_botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                exists=False
+            else:
+                # Something else has gone wrong.
+                raise
+        return exists
