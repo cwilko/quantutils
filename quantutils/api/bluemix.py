@@ -109,13 +109,13 @@ class CloudObjectStore:
             config=ibm_botocore.client.Config(signature_version='oauth'),
             endpoint_url=credentials["service_endpoint"])
         
-    def put(self, bucket, local_file_name, obj): 
+    def put(self, bucket, key, local_file_name): 
         self.getOrCreateBucket(bucket) 
-        self.cos.Object(bucket, obj).put(Body=open(local_file_name, 'rb'))
+        self.cos.Object(bucket, key).put(Body=open(local_file_name, 'rb'))
 
-    def put_csv(self, bucket, csv, obj):
+    def put_csv(self, bucket, key, csv):
         csv.to_csv('tmp-gz.csv', index=False, compression='gzip')
-        self.put(bucket, 'tmp-gz.csv', obj)
+        self.put(bucket, key, 'tmp-gz.csv')
         os.remove('tmp-gz.csv')
 
     def get_csv(self, bucket, key):
