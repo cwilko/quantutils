@@ -161,7 +161,7 @@ class Predictions:
     def csvtojson(data, market, modelId):
         data.index = data.index.tz_localize(None)
         obj = [{ \
-          "id": hashlib.md5("".join([modelId,"_",market,"_",i.isoformat()])).hexdigest(), \
+          "id": hashlib.md5("".join([modelId,"_",market,"_",i.isoformat()]).encode('utf-8')).hexdigest(), \
           "market":market, \
           "model_id":modelId, \
           "timestamp":i.isoformat(), \
