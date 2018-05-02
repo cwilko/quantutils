@@ -82,7 +82,7 @@ class Model():
     def evaluate(self, feed_dict, threshold):
         loss = self.loss.eval(feed_dict)     
         predictions = self.prediction.eval(feed_dict)
-        precision, recall, F_score = mlutils.evaluate(predictions, feed_dict['labels'], threshold)
+        precision, recall, F_score = mlutils.evaluate(predictions, feed_dict[self.train_labels_node], threshold)
         return loss, precision, recall, F_score, predictions
 
     def featureCount(self):

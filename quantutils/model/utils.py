@@ -187,7 +187,7 @@ def boostingTrain(model, training_set, test_set, lamda, iterations, debug=False)
             threshold, 1, debug)
 
         #Evaluate the results and calculate the odds of misclassification
-        _, _, _, _, train_predictions = model.predict({'features':train_X, 'labels':train_y, 'lamda':lamda}, threshold)
+        _, _, _, _, train_predictions = model.evaluate(model.to_feed_dict({'features':train_X, 'labels':train_y, 'lamda':lamda}), threshold)
         precision = np.argmax(train_predictions,axis=1) == np.argmax(train_y,axis=1)
         epsilon = sum(boost[~precision]) 
         delta = epsilon / (1.0 - epsilon)
