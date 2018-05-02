@@ -60,7 +60,7 @@ class Model():
         #update_weights = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
 
         # Predictions
-        self.train_prediction = tf.sigmoid(yhat)
+        self.prediction = tf.sigmoid(yhat)
 
     ## The Model definition ##
     def model(self, X, Theta1, Theta2, bias):        
@@ -72,23 +72,13 @@ class Model():
     def createOptimizer(self, loss):
         return tf.contrib.opt.ScipyOptimizerInterface(loss, options={'maxiter':self.OPT_CNF['maxIter']})
         
-    def minimize(self, feed_dict, train=True):
-        
+    def minimize(self, feed_dict):        
         #optimizer.minimize(feed_dict=feed_dict, fetches=[loss_reg], loss_callback=loss_callback)
+        self.optimizer.minimize(feed_dict=feed_dict)
 
-        feed_dict={ \
-                self.train_data_node:feed_dict['features'], \
-                self.train_labels_node:feed_dict['labels'], \
-                self.lam:feed_dict['lamda'], \
-                }
-
-        if (train):
-            self.optimizer.minimize(feed_dict=feed_dict)
-
-        return self.loss.eval(feed_dict), self.train_prediction.eval(feed_dict)
-
-    def predict(self, feed_dict, threshold):    
-        loss, predictions = self.minimize(feed_dict, train=False)
+    def evaluate(self, feed_dict, threshold):
+        loss = self.loss.eval(feed_dict)     
+        predictions = self.prediction.eval(feed_dict)
         precision, recall, F_score = mlutils.evaluate(predictions, feed_dict['labels'], threshold)
         return loss, precision, recall, F_score, predictions
 
@@ -97,6 +87,34 @@ class Model():
 
     def getWeights(self):
         return np.concatenate([self.Theta1.eval().flatten(), self.Theta2.eval().flatten()]).tolist()
+
+    def predict(self, weights, data): 
+
+        HIDDEN_UNITS = self.NTWK_CNF["hidden_units"]
+        feed_dict = {self.train_data_node:data}
+        predictions = np.empty((0,len(data), self.NUM_LABELS))
+
+        with tf.Session() as sess: 
+            # Intialise the bias
+            tf.global_variables_initializer().run()
+
+            for iteration in weights:
+
+                Theta1 = iteration[:(HIDDEN_UNITS*self.NUM_FEATURES)].reshape(HIDDEN_UNITS, self.NUM_FEATURES)      
+                Theta2 = iteration[(HIDDEN_UNITS*self.NUM_FEATURES):].reshape(self.NUM_LABELS, HIDDEN_UNITS)
+                
+                sess.run([self.Theta1.assign(Theta1), self.Theta2.assign(Theta2)])
+
+                predictions = np.concatenate([predictions, [self.prediction.eval(feed_dict)]])
+
+        return predictions
+
+    def to_feed_dict(self, string_dict):
+        return { \
+                self.train_data_node: string_dict['features'], \
+                self.train_labels_node: string_dict['labels'], \
+                self.lam: string_dict['lamda'], \
+                }
 
     def train(self, train_dict, val_dict, test_dict, threshold, iterations=50, debug=True):
         
@@ -137,8 +155,8 @@ class Model():
                 # Initialize all the variables we defined above.
                 tf.global_variables_initializer().run()
                             
-                self.minimize(train_dict)
-                train_loss, train_precision, train_recall, train_f, _ = self.predict(train_dict, threshold)
+                self.minimize(self.to_feed_dict(train_dict))
+                train_loss, train_precision, train_recall, train_f, _ = self.evaluate(self.to_feed_dict(train_dict), threshold)
 
                 if (train_loss < self.OPT_CNF['training_loss_error_case']):
                     print('.', end='')
@@ -147,14 +165,14 @@ class Model():
                     metrics["train_recall"].append(train_recall)
                     metrics["train_f"].append(train_f)
 
-                    val_loss, val_precision, val_recall, val_f, _= self.predict(val_dict, threshold)
+                    val_loss, val_precision, val_recall, val_f, _= self.evaluate(self.to_feed_dict(val_dict), threshold)
 
                     metrics["val_loss"].append(val_loss)
                     metrics["val_precision"].append(val_precision)
                     metrics["val_recall"].append(val_recall)
                     metrics["val_f"].append(val_f)
                     
-                    test_loss, test_precision, test_recall, test_f, test_predictions = self.predict(test_dict, threshold)
+                    test_loss, test_precision, test_recall, test_f, test_predictions = self.evaluate(self.to_feed_dict(test_dict), threshold)
 
                     metrics["test_loss"].append(test_loss)
                     metrics["test_precision"].append(test_precision)
