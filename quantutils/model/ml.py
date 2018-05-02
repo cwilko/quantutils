@@ -30,6 +30,12 @@ class Model():
         np.random.seed(SEED)
         tf.set_random_seed(SEED)
 
+        # The variables below hold all the trainable weights. For each, the
+        # parameter defines how the variables will be initialized. 
+        self.Theta1 = tf.Variable( tf.truncated_normal([HIDDEN_UNITS, NUM_FEATURES], stddev=STDEV, seed=SEED))
+        self.Theta2 = tf.Variable( tf.truncated_normal([NUM_LABELS, HIDDEN_UNITS], stddev=STDEV, seed=SEED))
+        self.bias = tf.Variable(tf.constant(BIAS, shape=[NUM_LABELS]))
+
         # This is where training samples and labels are fed to the graph.
         # These placeholder nodes will be fed a batch of training data at each
         # training step, which we'll write once we define the graph structure.
@@ -37,13 +43,10 @@ class Model():
         self.train_labels_node = tf.placeholder(tf.float32, shape=(None, NUM_LABELS))
         self.lam = tf.placeholder(tf.float32)
 
-        # The variables below hold all the trainable weights. For each, the
-        # parameter defines how the variables will be initialized. 
-        self.Theta1 = tf.Variable( tf.truncated_normal([HIDDEN_UNITS, NUM_FEATURES], stddev=STDEV, seed=SEED))
-        self.Theta2 = tf.Variable( tf.truncated_normal([NUM_LABELS, HIDDEN_UNITS], stddev=STDEV, seed=SEED))
-        bias2 = tf.Variable(tf.constant(BIAS, shape=[NUM_LABELS]))
+        self.weights1 = tf.placeholder_with_default(self.Theta1, shape=(HIDDEN_UNITS, NUM_FEATURES))
+        self.weights2 = tf.placeholder_with_default(self.Theta2, shape=(NUM_LABELS, HIDDEN_UNITS))
 
-        yhat = self.model(self.train_data_node, self.Theta1, self.Theta2, bias2)
+        yhat = self.model(self.train_data_node, self.weights1, self.weights2, self.bias)
 
         # Change the weights by subtracting derivative with respect to that weight
         # TODO : Check this loss function against the machine learning education.
@@ -91,19 +94,22 @@ class Model():
     def predict(self, weights, data): 
 
         HIDDEN_UNITS = self.NTWK_CNF["hidden_units"]
-        feed_dict = {self.train_data_node:data}
         predictions = np.empty((0,len(data), self.NUM_LABELS))
 
-        with tf.Session() as sess: 
-            # Intialise the bias
-            tf.global_variables_initializer().run()
+        with tf.Session() as sess:
+
+            sess.run(tf.global_variables_initializer())
 
             for iteration in weights:
-
+            
                 Theta1 = iteration[:(HIDDEN_UNITS*self.NUM_FEATURES)].reshape(HIDDEN_UNITS, self.NUM_FEATURES)      
                 Theta2 = iteration[(HIDDEN_UNITS*self.NUM_FEATURES):].reshape(self.NUM_LABELS, HIDDEN_UNITS)
-                
-                sess.run([self.Theta1.assign(Theta1), self.Theta2.assign(Theta2)])
+                        
+                feed_dict = {
+                    self.train_data_node:data,
+                    self.weights1:Theta1,
+                    self.weights2:Theta2,
+                }
 
                 predictions = np.concatenate([predictions, [self.prediction.eval(feed_dict)]])
 
