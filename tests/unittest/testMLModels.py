@@ -61,9 +61,9 @@ class MLModelTestCase(unittest.TestCase):
 		result = mlutils.evaluate(predictions, test_y, .0)
 
 		print("".join(["Received : ", str(result)]))
-		print("Expected : (0.53023255, 1.0, 0.6930091104902956)")
+		print("Expected : (0.51860464, 1.0, 0.6830015184105414)")
 
-		self.assertTrue(np.allclose(result, np.array([0.53023255, 1.0, 0.6930091104902956]))) # Local results
+		self.assertTrue(np.allclose(result, np.array([0.51860464, 1.0, 0.6830015184105414]))) # Local results
 
 	def testFFNN_BoostingTrain(self):
 
@@ -85,9 +85,9 @@ class MLModelTestCase(unittest.TestCase):
 		result = mlutils.evaluate(predictions, test_y, .0)
 
 		print("".join(["Received : ", str(result)]))
-		print("Expected : (0.51627904, 1.0, 0.6809815707344107)")
+		print("Expected : (0.53953487, 1.0, 0.7009063301409274)")
 
-		self.assertTrue(np.allclose(result, np.array([0.51627904, 1.0, 0.6809815707344107]))) # Local results
+		self.assertTrue(np.allclose(result, np.array([0.53953487, 1.0, 0.7009063301409274]))) # Local results
 
 
 if __name__ == '__main__':
