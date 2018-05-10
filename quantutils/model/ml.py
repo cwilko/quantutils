@@ -45,8 +45,9 @@ class Model():
 
         self.weights1 = tf.placeholder_with_default(self.Theta1, shape=(HIDDEN_UNITS, NUM_FEATURES))
         self.weights2 = tf.placeholder_with_default(self.Theta2, shape=(NUM_LABELS, HIDDEN_UNITS))
+        self.weights3 = tf.placeholder_with_default(self.bias, shape=[NUM_LABELS])
 
-        yhat = self.model(self.train_data_node, self.weights1, self.weights2, self.bias)
+        yhat = self.model(self.train_data_node, self.weights1, self.weights2, self.weights3)
 
         # Change the weights by subtracting derivative with respect to that weight
         # TODO : Check this loss function against the machine learning education.
@@ -89,7 +90,7 @@ class Model():
         return self.NUM_FEATURES
 
     def getWeights(self):
-        return np.concatenate([self.Theta1.eval().flatten(), self.Theta2.eval().flatten()]).tolist()
+        return np.concatenate([self.Theta1.eval().flatten(), self.Theta2.eval().flatten(), self.bias.eval().flatten()]).tolist()
 
     def predict(self, weights, data): 
 
@@ -103,12 +104,14 @@ class Model():
             for iteration in weights:
             
                 Theta1 = iteration[:(HIDDEN_UNITS*self.NUM_FEATURES)].reshape(HIDDEN_UNITS, self.NUM_FEATURES)      
-                Theta2 = iteration[(HIDDEN_UNITS*self.NUM_FEATURES):].reshape(self.NUM_LABELS, HIDDEN_UNITS)
+                Theta2 = iteration[(HIDDEN_UNITS*self.NUM_FEATURES):-self.NUM_LABELS].reshape(self.NUM_LABELS, HIDDEN_UNITS)
+                bias = iteration[-self.NUM_LABELS:]
                         
                 feed_dict = {
                     self.train_data_node:data,
                     self.weights1:Theta1,
                     self.weights2:Theta2,
+                    self.weights3:bias
                 }
 
                 predictions = np.concatenate([predictions, [self.prediction.eval(feed_dict)]])
