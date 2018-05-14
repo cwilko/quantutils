@@ -188,7 +188,7 @@ def boostingTrain(model, training_set, test_set, lamda, iterations, debug=False)
 
         #Evaluate the results and calculate the odds of misclassification
         _, _, _, _, train_predictions = model.evaluate(model.to_feed_dict({'features':train_X, 'labels':train_y, 'lamda':lamda}), threshold)
-        precision = np.argmax(train_predictions,axis=1) == np.argmax(train_y,axis=1)
+        precision = np.argmax(ppl.onehot(train_predictions),axis=1) == np.argmax(ppl.onehot(train_y),axis=1) # TODO : This only works for onehot encoding
         epsilon = sum(boost[~precision]) 
         delta = epsilon / (1.0 - epsilon)
         boost[precision] = boost[precision] * delta
