@@ -79,6 +79,19 @@ def encode(data, encoding):
     return df
 
 ##
+## Onehot
+##
+
+def onehot(labels, threshold=0):
+    if (labels.shape[1] > 1):
+        return labels
+    a = numpy.zeros(len(labels))
+    b = numpy.zeros(len(labels))
+    a[(labels>=threshold).flatten()] = labels[labels>=threshold]
+    b[((1-labels)>threshold).flatten()] = 1 - labels[(1-labels)>threshold]
+    return numpy.array([a,b]).T
+
+##
 ## Convert to local time zone
 ##
 import pytz
