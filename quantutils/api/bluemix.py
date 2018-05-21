@@ -147,4 +147,4 @@ class CloudObjectStore:
 
     @staticmethod
     def generateKey(data):
-        return hashlib.md5("".join(data)).hexdigest()
+        return hashlib.md5("".join(data).encode('utf-8')).hexdigest()
