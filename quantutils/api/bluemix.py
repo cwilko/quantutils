@@ -146,5 +146,5 @@ class CloudObjectStore:
         return exists
 
     @staticmethod
-    def generateKey(self, data):
+    def generateKey(data):
         return hashlib.md5("".join(data)).hexdigest()
