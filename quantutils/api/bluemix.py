@@ -11,6 +11,7 @@ import logmet
 import pandas as pd
 import ibm_boto3
 import ibm_botocore
+import hashlib
 
 class Logger:
     def __init__(self, appname, credentials_file):
@@ -143,3 +144,7 @@ class CloudObjectStore:
                 # Something else has gone wrong.
                 raise
         return exists
+
+    @staticmethod
+    def generateKey(self, data):
+        return hashlib.md5("".join(data)).hexdigest()
