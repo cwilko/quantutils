@@ -85,16 +85,6 @@ class MarketInsights:
               print(resp.text)
           return json.loads(resp.text)
 
-    def get_score(self, featureSet, model_id, training_id):
-      headers = { \
-                   'X-IBM-Client-Id': self.credentials["clientId"], \
-                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
-                   'accept': 'application/json' \
-                  }
-      
-
-      pass
-
     # TODO : Deprecated
     def get_predictions(self, market, modelId, start=None, end=None, debug=False):
         headers = { \
@@ -155,6 +145,40 @@ class MarketInsights:
         if debug: 
             print(resp.text)
         return json.loads(resp.text)
+
+    def put_training_run(self, data, debug=False):
+        headers = { \
+                   'X-IBM-Client-Id': self.credentials["clientId"], \
+                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                   'content-type': 'application/json' \
+                  }        
+        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/training_runs"])
+        resp = requests.put(url=url, headers=headers, data=json.dumps(data))  
+        if debug:
+            print(resp.text)
+        return json.loads(resp.text)
+
+    def get_training_run(self, training_run_id, debug=False):        
+        headers = { \
+                   'X-IBM-Client-Id': self.credentials["clientId"], \
+                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                   'accept': 'application/json' \
+                  }         
+        url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/training_runs/", training_run_id])
+        resp = requests.get(url=url, headers=headers) 
+        if debug: 
+            print(resp.text)
+        return json.loads(resp.text)
+
+    def get_score(self, featureSet, model_id, training_id):
+      headers = { \
+                   'X-IBM-Client-Id': self.credentials["clientId"], \
+                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                   'accept': 'application/json' \
+                  }
+      
+
+      pass
 
 class Dataset:
 
