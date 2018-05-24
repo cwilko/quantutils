@@ -24,8 +24,11 @@ class MarketInsights:
         if debug:
             print(resp.text)
         return json.loads(resp.text)
+
+    def get_dataset(self, dataset_desc, market, debug=False):
+        return self.get_dataset_by_id(Dataset.generateId(dataset_desc, market), debug)
     
-    def get_dataset(self, dataset_desc, market, debug=False):        
+    def get_dataset_by_id(self, dataset_id, debug=False):        
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
@@ -35,7 +38,7 @@ class MarketInsights:
         # TODO eliminate id, no need.       
         query = { \
                  'where': { \
-                          'id': Dataset.generateId(dataset_desc, market), \
+                          'id': dataset_id, \
                           } \
                 }
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/datasets?filter=",json.dumps(query)])
