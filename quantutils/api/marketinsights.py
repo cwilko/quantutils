@@ -12,8 +12,8 @@ class MarketInsights:
         credentials = json.load(open(credentials_file))
         self.credentials = credentials
         
-    def put_dataset(self, data, market, pipeline_id, debug=False):
-        dataset = Dataset.csvtojson(data, market, pipeline_id)
+    def put_dataset(self, data, dataset_desc, market, debug=False):
+        dataset = Dataset.csvtojson(data, dataset_desc, market)
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
@@ -25,7 +25,7 @@ class MarketInsights:
             print(resp.text)
         return json.loads(resp.text)
     
-    def get_dataset(self, market, pipelineId, debug=False):        
+    def get_dataset(self, dataset_desc, market, debug=False):        
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
@@ -35,14 +35,15 @@ class MarketInsights:
         # TODO eliminate id, no need.       
         query = { \
                  'where': { \
-                          'id': "".join([pipelineId,"_",market]), \
+                          'id': Dataset.generateId(dataset_desc, market), \
                           } \
                 }
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/datasets?filter=",json.dumps(query)])
         resp = requests.get(url=url, headers=headers) 
         if debug: 
             print(resp.text)
-        return Dataset.jsontocsv(json.loads(resp.text)[0])
+        dataset = json.loads(resp.text)[0]
+        return [Dataset.jsontocsv(dataset), dataset["dataset_desc"]]
 
     def put_predictions(self, data, market, modelId, throttle=10, sleep=2, debug=False, update=False):
 
@@ -81,6 +82,17 @@ class MarketInsights:
               print(resp.text)
           return json.loads(resp.text)
 
+    def get_score(self, featureSet, model_id, training_id):
+      headers = { \
+                   'X-IBM-Client-Id': self.credentials["clientId"], \
+                   'X-IBM-Client-Secret': self.credentials["clientSecret"], \
+                   'accept': 'application/json' \
+                  }
+      
+
+      pass
+
+    # TODO : Deprecated
     def get_predictions(self, market, modelId, start=None, end=None, debug=False):
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
@@ -144,8 +156,8 @@ class MarketInsights:
 class Dataset:
 
     @staticmethod
-    def csvtojson(csv, market, pipeline_id):
-        obj = {"id":"".join([pipeline_id,"_",market]), "market":market, "pipelineID":pipeline_id}
+    def csvtojson(csv, dataset_desc, market):
+        obj = {"id":Dataset.generateId(dataset_desc, market), "dataset_desc":dataset_desc, "market":market}
         obj["data"] = csv.values.tolist()
         obj["tz"] = csv.index.tz.zone
         obj["index"] = [date.isoformat() for date in csv.index.tz_localize(None)] # Remove locale 
@@ -154,6 +166,10 @@ class Dataset:
     @staticmethod
     def jsontocsv(jsonObj):
         return pandas.DataFrame(jsonObj["data"], index=pandas.DatetimeIndex(jsonObj["index"], name="Date_Time", tz=pytz.timezone(jsonObj["tz"])))   
+
+    @staticmethod
+    def generateId(dataset_desc, market):
+      return hashlib.md5("".join([market, str(dataset_desc["pipeline"]), str(dataset_desc["features"]), str(dataset_desc["labels"])]).encode('utf-8')).hexdigest()
 
 class Predictions:
 
