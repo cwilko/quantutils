@@ -48,6 +48,10 @@ class MarketInsights:
         dataset = json.loads(resp.text)[0]
         return [Dataset.jsontocsv(dataset), dataset["dataset_desc"]]
 
+    # TODO  (without getting data too)
+    def get_dataset_desc(self):
+      pass
+
     def put_predictions(self, data, market, modelId, throttle=10, sleep=2, debug=False, update=False):
 
         ## Throttle API calls (throttle = Number of calls/sec)
@@ -170,21 +174,29 @@ class MarketInsights:
             print(resp.text)
         return json.loads(resp.text)
 
-    def get_score(self, featureSet, model_id, training_id):
-      headers = { \
+    def get_score(self, data, training_run_id, debug=False):
+        featureSet = Dataset.csvtojson(data, {}, "Score Data", createId=False)
+        print(featureSet)
+        headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
-                   'accept': 'application/json' \
-                  }
-      
-
-      pass
+                   'content-type': 'application/json' \
+                  }        
+        url = "".join([self.credentials["endpoint"],"/miol-prod/marketinsights/predict/", training_run_id])
+        resp = requests.post(url=url, headers=headers, data=json.dumps(featureSet))  
+        if debug:
+            print(resp.text)
+        return json.loads(resp.text)
 
 class Dataset:
 
     @staticmethod
-    def csvtojson(csv, dataset_desc, market):
-        obj = {"id":Dataset.generateId(dataset_desc, market), "dataset_desc":dataset_desc, "market":market}
+    def csvtojson(csv, dataset_desc, market, createId=True):
+        obj = {}
+        if (createId):
+          obj["id"] = Dataset.generateId(dataset_desc, market)
+        obj["dataset_desc"] = dataset_desc   
+        obj["market"] = market
         obj["data"] = csv.values.tolist()
         obj["tz"] = csv.index.tz.zone
         obj["index"] = [date.isoformat() for date in csv.index.tz_localize(None)] # Remove locale 
