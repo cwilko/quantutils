@@ -112,7 +112,8 @@ def normaliseCandlesticks(data, allowZero=True):
     X = (X - Xmin) / scale
     if (allowZero!=True):
         X = (X * 2) - 1
-    return pandas.DataFrame(numpy.hstack((X,scale / numpy.nanmax(scale))), data.index)
+    # Add additional feature to reflect the percentage range over the Open (scaled up to be between 0 and 1)
+    return pandas.DataFrame(numpy.hstack((X,numpy.column_stack(scale.T * 100 / data[0].values))), data.index)
 
 ##
 ## Split (Train/Val/Test)
