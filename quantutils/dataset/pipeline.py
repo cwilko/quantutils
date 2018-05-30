@@ -1,6 +1,5 @@
 import pandas
 import numpy
-import toolz
 
 ## 
 ## Merge data
@@ -137,6 +136,7 @@ def splitCol(data, col_num):
 ## Interleave two datasets 
 ##
 def interleave(data1, data2):
+    import toolz
     return pandas.DataFrame(toolz.interleave([data1.values, data2.values]))
 
 ##
