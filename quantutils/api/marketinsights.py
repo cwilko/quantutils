@@ -176,17 +176,19 @@ class MarketInsights:
 
     def get_score(self, data, training_run_id, debug=False):
         featureSet = Dataset.csvtojson(data, {}, "Score Data", createId=False)
-        print(featureSet)
         headers = { \
                    'X-IBM-Client-Id': self.credentials["clientId"], \
                    'X-IBM-Client-Secret': self.credentials["clientSecret"], \
-                   'content-type': 'application/json' \
+                   'content-type': 'application/json', \
+                   'accept': 'application/json' 
                   }        
         url = "".join([self.credentials["endpoint"],"/miol-prod/marketinsights/predict/", training_run_id])
-        resp = requests.post(url=url, headers=headers, data=json.dumps(featureSet))  
+        resp = requests.post(url=url, headers=headers, data=featureSet)  
         if debug:
+            print(featureSet)
+            print(url)
             print(resp.text)
-        return json.loads(resp.text)
+        return Dataset.jsontocsv(json.loads(resp.text))
 
 class Dataset:
 
