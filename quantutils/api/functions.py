@@ -10,8 +10,8 @@ class Functions:
         self.credentials = credentials
 
     def call_function(self, name, args, debug=False):        
-    	b64token = base64.b64encode(self.credentials["api_key"])
-        headers = {'Content-type': 'application/json', 'Authorization':"".join(["Basic ", b64token])}
+        b64token = base64.b64encode(self.credentials["api_key"])
+        headers = {'Content-type': 'application/json', 'Authorization': "".join(["Basic ", b64token])}
         url = "".join([self.credentials["endpoint"],name,"?blocking=true"])
         resp = requests.post(url=url, data=json.dumps(args), headers=headers) 
 
