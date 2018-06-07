@@ -33,6 +33,12 @@ def getSignals(predictions, data_y, threshold):
     signals[(predictions < threshold).all(axis=1)] = 0
     return signals
 
+def getPredictionSignals(predictions, threshold):
+    signals = np.ones(len(predictions))
+    a = np.argmax(ppl.onehot(predictions),axis=1)
+    signals[(a==1)] = -1 # Set any DOWN signals to -1 (UP signals will pick up the default of 1)
+    signals[(predictions < threshold).all(axis=1)] = 0
+    return signals
 
 
 def sample(training_set, method="RANDOM", prop=.9, loo=0, boost = []): 

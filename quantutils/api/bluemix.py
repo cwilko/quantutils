@@ -114,6 +114,9 @@ class CloudObjectStore:
         self.getOrCreateBucket(bucket) 
         self.cos.Object(bucket, key).put(Body=open(local_file_name, 'rb'))
 
+    def delete(self, bucket, key):
+        self.cos.Object(bucket, key).delete()
+
     def put_csv(self, bucket, key, csv):
         csv.to_csv('tmp-gz.csv', index=False, compression='gzip')
         self.put(bucket, key, 'tmp-gz.csv')
