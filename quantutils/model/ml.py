@@ -50,7 +50,6 @@ class Model():
         yhat = self.model(self.train_data_node, self.weights1, self.weights2, self.weights3)
 
         # Change the weights by subtracting derivative with respect to that weight
-        # TODO : Check this loss function against the machine learning education.
         self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=self.train_labels_node, logits=yhat))
         # Regularization using L2 Loss function 
         regularizer = tf.nn.l2_loss(self.Theta1) + tf.nn.l2_loss(self.Theta2)

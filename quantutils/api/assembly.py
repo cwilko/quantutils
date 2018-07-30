@@ -4,6 +4,7 @@ import quantutils.dataset.pipeline as ppl
 class MIAssembly:
 
 	def __init__(self, mi, fun):
+		# TODO: Create the instances of MI and Functions in here
 		self.mi = mi
 		self.fun = fun
 

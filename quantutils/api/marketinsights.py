@@ -8,8 +8,8 @@ import dateutil.parser as parser
 
 class MarketInsights:
     
-    def __init__(self, credentials_file):
-        credentials = json.load(open(credentials_file))
+    def __init__(self, credentials_store):
+        credentials = credentials_store.getSecrets('MIOapi_cred')
         self.credentials = credentials
         
     def put_dataset(self, data, dataset_desc, market, debug=False):
