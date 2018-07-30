@@ -1,5 +1,5 @@
 from numpy import *
-from finance import *
+from quantutils.core.finance import *
 from uuid import *
 
 def MA(values, period):

@@ -14,10 +14,10 @@ import ibm_botocore
 import hashlib
 
 class Logger:
-    def __init__(self, appname, credentials_file):
+    def __init__(self, appname, credentials_store):
 
         self.appname = appname
-        logging_cred = json.load(open(credentials_file))
+        logging_cred = credentials_store.getSecrets('logging_cred')
         self.log = logmet.Logmet(
             logmet_host=logging_cred['logmet_host'],
             logmet_port=logging_cred['logmet_port'],
@@ -40,8 +40,8 @@ class Logger:
         self.log.emit_log({'app_name': self.appname,'type': 'debug','message': msg})
 
 class Metrics:
-    def __init__(self, credentials_file):
-        self.credentials = json.load(open(credentials_file))
+    def __init__(self, credentials_store):
+        self.credentials = credentials_store.getSecrets('metrics_cred')
 
     def send(self, data):
         headers = {}
@@ -54,8 +54,8 @@ class Metrics:
 
 class ObjectStore:
     
-    def __init__(self, credentials_file):
-        credentials = json.load(open(credentials_file))
+    def __init__(self, credentials_store):
+        credentials = credentials_store.getSecrets('object_storage_cred')
         self.load_obj_storage_token(credentials)
     
     def load_obj_storage_token(self, obj_storage_cred):
@@ -98,8 +98,8 @@ class ObjectStore:
 
 class CloudObjectStore:
     
-    def __init__(self, credentials_file):
-        credentials = json.load(open(credentials_file))
+    def __init__(self, credentials_store):
+        credentials = credentials_store.getSecrets('ibm_cos_cred')
         self.cos = self.connect(credentials)
     
     def connect(self, credentials):

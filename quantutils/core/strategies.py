@@ -1,11 +1,10 @@
 import random
 import pandas as pd
-from tradeFramework.api import TradeEngine
+from tradeframework.api import TradeEngine
 
 def gap_close(x, txCost):
     profit = 0.0
     ohlc = x.iloc[0]
-    print x
     
     if (gap_close_predict(x)["bar"] == TradeEngine.BUY ):
         #if (ohlc.Low < ohlc.prevClose):
