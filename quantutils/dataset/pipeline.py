@@ -160,13 +160,13 @@ def intersect(data1, data2):
 def visualise(data, periods, count):
 
     import plotly.offline as py
-    from plotly.tools import FigureFactory as FF
+    import plotly.figure_factory as ff
 
     py.init_notebook_mode() # run at the start of every ipython notebook
 
     csticks = data.values[0:count:,:periods*4].ravel().reshape(-1,4)
 
-    fig = FF.create_candlestick(csticks[:,0], csticks[:,1], csticks[:,2], csticks[:,3])
+    fig = ff.create_candlestick(csticks[:,0], csticks[:,1], csticks[:,2], csticks[:,3])
 
     py.iplot(fig, filename='jupyter/simple-candlestick', validate=True)
     
@@ -184,27 +184,3 @@ def save_csv(data, filename):
     print("Saved data to " + filename)
     
     return data
-
-##
-## Load Data
-##
-
-# TODO _ CHECK WE ARENT USING FIRST ROW AS HEADER
-def loadRawData(datasource, market, srcPath, infile):
-
-    if infile.lower().startswith(market["name"].lower()):
-
-        print("Adding " + infile + " to " + market["market"] + " table")
-
-        ## Load RAW data (assume CSV)
-        return pandas.read_csv(srcPath + infile, 
-                                  index_col=datasource["index_col"], 
-                                  parse_dates=datasource["parse_dates"], 
-                                  header=None,
-                                  names=["Date", "Time", "Open", "High", "Low", "Close"],
-                                  usecols=range(0,6),
-                                  skiprows=datasource["skiprows"],
-                                  dayfirst=datasource["dayfirst"]
-                                 )        
-    else:
-        return None
