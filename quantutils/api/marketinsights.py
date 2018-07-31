@@ -210,7 +210,7 @@ class Dataset:
 
     @staticmethod
     def generateId(dataset_desc, market):
-      return hashlib.md5("".join([market, str(dataset_desc["pipeline"]), str(dataset_desc["features"]), str(dataset_desc["labels"])]).encode('utf-8')).hexdigest()
+      return hashlib.md5("".join([market, json.dumps(dataset_desc["pipeline"], sort_keys=True), str(dataset_desc["features"]), str(dataset_desc["labels"])]).encode('utf-8')).hexdigest()
 
 class Predictions:
 
