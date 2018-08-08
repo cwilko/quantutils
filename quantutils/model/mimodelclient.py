@@ -68,7 +68,7 @@ class MIModelClient():
             # run dataset entries matching that timestamp through model, save results against original timestamps
             mask = latestPeriods==x
             predictions = model.predict(weights[wPeriods==x].values[:,1:], dataset[mask])
-            results[mask] = predictions.reshape(tsPerPeriod, len(dataset[mask]))
+            results[mask] = predictions.reshape(tsPerPeriod, len(dataset[mask])).T ## WARNING : ONLY WORKS FOR SINGLE LABEL DATA
 
         # TODO insert default aggregator here
         
