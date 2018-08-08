@@ -54,6 +54,7 @@ class MIModelClient():
 
         # Load timestamps from weights db (or load all weights data)
         wPeriods = weights["timestamp"].values
+        tsPerPeriod = len(np.sum(wPeriods==wPeriods[0]))
 
         # x = for each dataset timestamp, match latest available weight timestamp
         latestPeriods = np.zeros(len(timestamps)) 
@@ -62,11 +63,13 @@ class MIModelClient():
         latestPeriods[mask] = [uniqueWPeriods[uniqueWPeriods<=s][-1] for s in timestamps[mask]]
 
         # for each non-duplicate timestamp in x, load weights into model for that timestamp
-        results = np.empty((len(dataset), model.NUM_LABELS))
+        results = np.empty((len(dataset), tsPerPeriod))
         for x in np.unique(latestPeriods):
             # run dataset entries matching that timestamp through model, save results against original timestamps
             mask = latestPeriods==x
             predictions = model.predict(weights[wPeriods==x].values[:,1:], dataset[mask])
-            results[mask] = aggMethod(predictions)
+            results[mask] = predictions
+
+        # TODO insert default aggregator here
         
         return results    
