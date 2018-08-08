@@ -19,7 +19,7 @@ class MIModelClient():
 	modelId = None
 	modelInstance = None
 
-	def score(self, training_id, dataset):
+	def score(self, training_id, dataset, aggMethod=None):
 
 		training_run = mi.get_training_run(training_id)
 		if (not training_run):
@@ -32,7 +32,7 @@ class MIModelClient():
 		weights = cos.get_csv(COS_BUCKET, training_id)
 		model = self.getModelInstance(model_id, dataset_desc["features"], dataset_desc["labels"])		
 		index = pd.DatetimeIndex(dataset["index"], tz=pytz.timezone(dataset["tz"]))
-		predictions = self.getPredictions(model, index.astype(np.int64) // 10**9, np.array(dataset["data"]), weights) 
+		predictions = self.getPredictions(model, index.astype(np.int64) // 10**9, np.array(dataset["data"]), aggMethod, weights) 
 		return json.loads(Dataset.csvtojson(pd.DataFrame(predictions, index), None, None, createId=False))
 
 	def getModelInstance(self, model_id, features, labels):
@@ -47,7 +47,10 @@ class MIModelClient():
 		return Model(features, labels, model_config)
 
 	# Function to take dates, dataset info for those dates
-	def getPredictions(self, model, timestamps, dataset, weights=None):
+	def getPredictions(self, model, timestamps, dataset, aggMethod, weights):
+
+	    if aggMethod is None:
+			aggMethod = lambda x: np.nanmean(x,axis=0)
 
 	    # Load timestamps from weights db (or load all weights data)
 	    wPeriods = weights["timestamp"].values
@@ -63,6 +66,7 @@ class MIModelClient():
 	    for x in np.unique(latestPeriods):
 	        # run dataset entries matching that timestamp through model, save results against original timestamps
 	        mask = latestPeriods==x
-	        results[mask] = np.nanmean(model.predict(weights[wPeriods==x].values[:,1:], dataset[mask]), axis=0)
+	        predictions = model.predict(weights[wPeriods==x].values[:,1:], dataset[mask])
+	        results[mask] = aggMethod(predictions)
 	    
 	    return results    
