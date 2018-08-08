@@ -54,7 +54,7 @@ class MIModelClient():
 
         # Load timestamps from weights db (or load all weights data)
         wPeriods = weights["timestamp"].values
-        tsPerPeriod = len(np.sum(wPeriods==wPeriods[0]))
+        tsPerPeriod = np.sum(wPeriods==wPeriods[0])
 
         # x = for each dataset timestamp, match latest available weight timestamp
         latestPeriods = np.zeros(len(timestamps)) 
