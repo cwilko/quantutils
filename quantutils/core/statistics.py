@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
-import quantutils.core.strategies
-import quantutils.core.trading as td
+import quantutils.backtest.strategies as strategies
+import quantutils.core.timeseries as tms
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
@@ -21,7 +21,7 @@ def statistics(ts):
     s = ts.std() 
     f = ts.mean() / (ts.std() ** 2)
     Sh = (m / s) * np.sqrt(252)
-    maxDD, maxDDD = td.maxDD(np.cumprod(1 + ts))
+    maxDD, maxDDD = tms.maxDD(np.cumprod(1 + ts))
 
     print()
     print("## RESULTS ##")
@@ -139,7 +139,7 @@ def plot(ts, pnl, f=1):
     mondays = WeekdayLocator(MONDAY)        # major ticks on the mondays
     alldays = DayLocator()              # minor ticks on the days
     weekFormatter = DateFormatter('%b %d')  # e.g., Jan 12
-    dayFormatter = DateFormatter('%d')      # e.g., 12
+    #dayFormatter = DateFormatter('%d')      # e.g., 12
 
     fig, ax = plt.subplots()
     fig.subplots_adjust(bottom=0.2)

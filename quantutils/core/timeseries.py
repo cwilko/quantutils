@@ -1,33 +1,31 @@
-from numpy import *
-from quantutils.core.finance import *
-from uuid import *
+import numpy as np
 
 def MA(values, period):
-    ma = [0]*len(values)    
+    ma = np.zeros(len(values)) 
     for n in range(period-1,len(ma)):
-        ma[n] = mean(values[n-(period-1):n])
-    ma[0:period] = [ma[period-1]]*period
+        ma[n] = np.mean(values[n-(period-1):n])
+    #ma[0:period] = 0 #[ma[period-1]]*period
     return ma
     
 def MA_prog(values, period):
-    ma = [0]*len(values)
+    ma = np.zeros(len(values)) 
     for n in range(0, len(ma)):
         if n < period :
-            ma[n] = mean(values[0:n+1])
+            ma[n] = np.mean(values[0:n+1])
         else:
-            ma[n] = mean(values[n-(period-1):n+1])
+            ma[n] = np.mean(values[n-(period-1):n+1])
     return ma
     
 def DMA(values, period, offset):
-    ma = [0]*len(values)    
+    ma = np.zeros(len(values)) 
     for n in range(period-1,len(ma)-offset):
-        ma[n+offset] = mean(values[n-(period-1):n])
-    ma[0:period+offset] = [ma[period-1+offset]]*(period+offset)
+        ma[n+offset] = np.mean(values[n-(period-1):n])
+   #ma[0:period+offset] = 0 #[ma[period-1+offset]]*(period+offset)
     return ma
 
 def DMA_prog(values, period, offset):
     ma = MA_prog(values, period) 
-    dma = [0]*len(values) 
+    dma = np.zeros(len(values))
     if offset > 0:   
         for n in range(offset - 1,len(ma)):
             #if n < (offset-1):
@@ -49,8 +47,8 @@ def calculateInflexions(period, prices, dates, data_start):
     PTDate = 0
     sample = 0
 
-    dt = dtype({'names':('price','date'),'formats':('float','|O4')})
-    inflexions = array([],dt)
+    dt = np.dtype({'names':('price','date'),'formats':('float','|O4')})
+    inflexions = np.array([],dt)
     
     # Algorithm
     
@@ -100,11 +98,11 @@ def calculateInflexions(period, prices, dates, data_start):
 
 def maxDD(cumret):
     
-    highwatermark=zeros(len(cumret)); # initialize high watermarks to zero.
+    highwatermark=np.zeros(len(cumret)); # initialize high watermarks to zero.
 
-    drawdown=ones(len(cumret)); # initialize drawdowns to zero.
+    drawdown=np.ones(len(cumret)); # initialize drawdowns to zero.
 
-    drawdownduration=zeros(len(cumret)); # initialize drawdown duration to zero.
+    drawdownduration=np.zeros(len(cumret)); # initialize drawdown duration to zero.
 
     for t in range(1,len(cumret)):
         highwatermark[t]=max(highwatermark[t-1], cumret[t]);

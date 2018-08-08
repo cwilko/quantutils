@@ -5,12 +5,12 @@ import quantutils.dataset.pipeline as ppl
 
 class MarketDataStore:
 
-    def __init__(self, root):
+    def __init__(self, root, sources_file="datasources.json"):
         # TODO read root from quantutils properties file
         self.root = root
 
         # Load datasources
-        self.datasources = json.load(open("".join([root,"/datasources.json"])))
+        self.datasources = json.load(open("".join([root,"/", sources_file])))
 
     def getDatasources(self):
         return self.datasources
@@ -64,8 +64,6 @@ class MarketDataStore:
 
     def refreshMarketData(self):
         
-        markets = dict()
-
         ## Loop over datasources...
 
         for datasource in self.getDatasources():
@@ -112,7 +110,7 @@ class MarketDataStore:
                                 tsData = ppl.merge(newData, tsData)                
                             
                     
-                    #ppl.save_hdf(tsData, timeseries["name"], hdfStore)
+                    ppl.save_hdf(tsData, source["name"], hdfStore)
                     # TODO : Back up to object storage
                  
 
