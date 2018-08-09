@@ -4,7 +4,7 @@ import os
 # File based credentials store
 class CredentialsStore():
 
-    def __init__(self, type='file', context='~/.quantutils'):
+    def __init__(self, context='~/.quantutils'):
         context = os.path.expanduser(context)
         if not os.path.exists(context):
             os.makedirs(context)
