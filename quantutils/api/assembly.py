@@ -51,3 +51,21 @@ class MIAssembly:
 
 		if debug: print("Sending feature vector : " + str(csvData)) 
 		return self.get_predictions_with_dataset(csvData, training_id, debug)
+
+	# Local client
+	def get_local_predictions_with_dataset_id(self, dataset_id, training_run_id, start=None, end=None, debug=False):
+
+		from quantutils.model.mimodelclient import MIModelClient
+
+		# Get the dataset from storage, crop and strip out labels
+		dataset, _ = self.mi.get_dataset_by_id(dataset_id)
+		dataset = dataset[start:end].iloc[:,:-1]
+
+		if debug: print(dataset)
+
+		obj = {}
+		obj["data"] = dataset.values.tolist()
+		obj["tz"] = dataset.index.tz.zone
+		obj["index"] = [date.isoformat() for date in dataset.index.tz_localize(None)]
+
+		return MIModelClient().score(training_run_id, obj)

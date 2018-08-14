@@ -70,3 +70,36 @@ class MIModelClient():
         #results = np.nanmean(results, axis=0)
         
         return results    
+
+    # This version of the function returns predictions from each trained model that is associated with all previous time periods - rather than a single
+    # prediction for the current (or most recent) time period.
+    # The results from using this tend to be far more stable, but ultimately lower than predictions from models associated with recent time periods.
+    def _getPredictions_Historical(self, model, timestamps, dataset, weights):
+
+        # Load timestamps from weights db (or load all weights data)
+        wPeriods = weights["timestamp"].values
+        tsPerPeriod = np.sum(wPeriods==wPeriods[0])
+
+        # x = for each dataset timestamp, match latest available weight timestamp
+        latestPeriods = np.zeros(len(timestamps)) 
+        uniqueWPeriods = np.unique(wPeriods)  # q
+        mask = timestamps>=np.min(uniqueWPeriods)
+        latestPeriods[mask] = [uniqueWPeriods[uniqueWPeriods<=s][-1] for s in timestamps[mask]]
+
+        # for each non-duplicate timestamp in x, load weights into model for that timestamp
+        results = [np.array([])] * len(dataset)
+        for x in np.unique(latestPeriods):
+            #print(x)
+            # run dataset entries matching that timestamp through model, save results against original timestamps
+            mask = [i for i in range(len(results)) if latestPeriods[i] >= x]
+            predictions = model.predict(weights[wPeriods==x].values[:,1:], dataset[mask])
+            scores = predictions.reshape(tsPerPeriod, len(dataset[mask])).T ## WARNING : ONLY WORKS FOR SINGLE LABEL DATA
+
+            for i in range(0,len(mask)):
+                results[mask[i]] = np.append(results[mask[i]], scores[i])
+                        
+            #results[mask] = mlutils.aggregatePredictions([pd.DataFrame(scores)], "vote_unanimous_pred").values
+
+        #results = np.nanmean(results, axis=0)
+        
+        return results 
