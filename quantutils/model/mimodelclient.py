@@ -3,33 +3,32 @@ import pandas as pd
 import pytz
 import json
 
-from quantutils.api.auth import CredentialsStore
 from quantutils.api.bluemix import CloudObjectStore
 from quantutils.api.marketinsights import MarketInsights, Dataset
 from quantutils.model.ml import Model
 
 COS_BUCKET = "marketinsights-weights"
 
-cred = CredentialsStore('api/cred')
-cos = CloudObjectStore(cred)
-mi = MarketInsights(cred)
-
 class MIModelClient():
 
     modelId = None
     modelInstance = None
 
+    def __init__(self, cred):
+        self.cos = CloudObjectStore(cred)
+        self.mi = MarketInsights(cred)
+
     def score(self, training_id, dataset):
 
-        training_run = mi.get_training_run(training_id)
+        training_run = self.mi.get_training_run(training_id)
         if (not training_run):
             return "No Training Id found"
-        if (not cos.keyExists(COS_BUCKET, training_id)):
+        if (not self.cos.keyExists(COS_BUCKET, training_id)):
             return "No trained weights found for this training id"
 
         model_id = training_run["model_id"]
-        _, dataset_desc = mi.get_dataset_by_id(training_run["datasets"][0]) # TODO this is too heavyweight just to get the desc
-        weights = cos.get_csv(COS_BUCKET, training_id)
+        _, dataset_desc = self.mi.get_dataset_by_id(training_run["datasets"][0]) # TODO this is too heavyweight just to get the desc
+        weights = self.cos.get_csv(COS_BUCKET, training_id)
         model = self.getModelInstance(model_id, dataset_desc["features"], dataset_desc["labels"])        
         index = pd.DatetimeIndex(dataset["index"], tz=pytz.timezone(dataset["tz"]))
         predictions = self.getPredictions(model, index.astype(np.int64) // 10**9, np.array(dataset["data"]), weights) 
@@ -42,7 +41,7 @@ class MIModelClient():
         return self.modelInstance
 
     def createModelInstance(self, model_id, features, labels):
-        model_config = mi.get_model(model_id)
+        model_config = self.mi.get_model(model_id)
         # Create ML model
         return Model(features, labels, model_config)
 
@@ -62,10 +61,14 @@ class MIModelClient():
         # for each non-duplicate timestamp in x, load weights into model for that timestamp
         results = np.empty((len(dataset), tsPerPeriod))
         for x in np.unique(latestPeriods):
-            # run dataset entries matching that timestamp through model, save results against original timestamps
             mask = latestPeriods==x
-            predictions = model.predict(weights[wPeriods==x].values[:,1:], dataset[mask])
-            results[mask] = predictions.reshape(tsPerPeriod, len(dataset[mask])).T ## WARNING : ONLY WORKS FOR SINGLE LABEL DATA
+            if (x==0):
+                predictions = np.zeros((len(dataset[mask]), tsPerPeriod))
+            else:
+                # run dataset entries matching that timestamp through model, save results against original timestamps
+                predictions = model.predict(weights[wPeriods==x].values[:,1:], dataset[mask])
+                predictions = predictions.reshape(tsPerPeriod, len(dataset[mask])).T ## WARNING : ONLY WORKS FOR SINGLE LABEL DATA
+            results[mask] = predictions
 
         #results = np.nanmean(results, axis=0)
         
@@ -90,7 +93,7 @@ class MIModelClient():
         results = [np.array([])] * len(dataset)
         for x in np.unique(latestPeriods):
             #print(x)
-            # run dataset entries matching that timestamp through model, save results against original timestamps
+            
             mask = [i for i in range(len(results)) if latestPeriods[i] >= x]
             predictions = model.predict(weights[wPeriods==x].values[:,1:], dataset[mask])
             scores = predictions.reshape(tsPerPeriod, len(dataset[mask])).T ## WARNING : ONLY WORKS FOR SINGLE LABEL DATA

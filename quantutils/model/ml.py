@@ -82,8 +82,8 @@ class Model():
     def evaluate(self, feed_dict, threshold):
         loss = self.loss.eval(feed_dict)     
         predictions = self.prediction.eval(feed_dict)
-        precision, recall, F_score = mlutils.evaluate(predictions, feed_dict[self.train_labels_node], threshold)
-        return loss, precision, recall, F_score, predictions
+        precision = mlutils.evaluate(predictions, feed_dict[self.train_labels_node], threshold)
+        return loss, precision, predictions
 
     def featureCount(self):
         return self.NUM_FEATURES
@@ -133,16 +133,10 @@ class Model():
         metrics = {
             "train_loss":[],
             "train_precision":[],
-            "train_recall":[],
-            "train_f":[],
             "val_loss":[],
             "val_precision":[],
-            "val_recall":[],
-            "val_f":[],
             "test_loss":[],
             "test_precision":[],
-            "test_recall":[],
-            "test_f":[],
             "test_predictions":[],
             "weights":[]
         }
@@ -164,28 +158,22 @@ class Model():
                 tf.global_variables_initializer().run()
                             
                 self.minimize(self.to_feed_dict(train_dict))
-                train_loss, train_precision, train_recall, train_f, _ = self.evaluate(self.to_feed_dict(train_dict), threshold)
+                train_loss, train_precision, _ = self.evaluate(self.to_feed_dict(train_dict), threshold)
 
                 if (train_loss < self.OPT_CNF['training_loss_error_case']):
                     print('.', end='')
                     metrics["train_loss"].append(train_loss)
                     metrics["train_precision"].append(train_precision)
-                    metrics["train_recall"].append(train_recall)
-                    metrics["train_f"].append(train_f)
 
-                    val_loss, val_precision, val_recall, val_f, _= self.evaluate(self.to_feed_dict(val_dict), threshold)
+                    val_loss, val_precision, _= self.evaluate(self.to_feed_dict(val_dict), threshold)
 
                     metrics["val_loss"].append(val_loss)
                     metrics["val_precision"].append(val_precision)
-                    metrics["val_recall"].append(val_recall)
-                    metrics["val_f"].append(val_f)
                     
-                    test_loss, test_precision, test_recall, test_f, test_predictions = self.evaluate(self.to_feed_dict(test_dict), threshold)
+                    test_loss, test_precision, test_predictions = self.evaluate(self.to_feed_dict(test_dict), threshold)
 
                     metrics["test_loss"].append(test_loss)
                     metrics["test_precision"].append(test_precision)
-                    metrics["test_recall"].append(test_recall)
-                    metrics["test_f"].append(test_f)
                     metrics["test_predictions"] = test_predictions # return the last set of predictions ( TODO could return the one with the best val score)
 
                     metrics["weights"].append(self.getWeights())
@@ -201,16 +189,10 @@ class Model():
         results = {
             "train_loss": {"mean":np.nanmean(metrics["train_loss"]), "std":np.nanstd(metrics["train_loss"]), "values":metrics["train_loss"]},
             "train_precision": {"mean":np.nanmean(metrics["train_precision"]), "std":np.nanstd(metrics["train_precision"]), "values":metrics["train_precision"]},
-            "train_recall": {"mean":np.nanmean(metrics["train_recall"]), "std":np.nanstd(metrics["train_recall"]), "values":metrics["train_recall"]},
-            "train_f": {"mean":np.nanmean(metrics["train_f"]), "std":np.nanstd(metrics["train_f"]), "values":metrics["train_f"]},
             "val_loss": {"mean":np.nanmean(metrics["val_loss"]), "std":np.nanstd(metrics["val_loss"]), "values":metrics["val_loss"]},
             "val_precision":{"mean":np.nanmean(metrics["val_precision"]), "std":np.nanstd(metrics["val_precision"]), "values":metrics["val_precision"]},
-            "val_recall": {"mean":np.nanmean(metrics["val_recall"]), "std":np.nanstd(metrics["val_recall"]), "values":metrics["val_recall"]},
-            "val_f": {"mean":np.nanmean(metrics["val_f"]), "std":np.nanstd(metrics["val_f"]), "values":metrics["val_f"]},
             "test_loss": {"mean":np.nanmean(metrics["test_loss"]), "std":np.nanstd(metrics["test_loss"]), "values":metrics["test_loss"]},
             "test_precision":{"mean":np.nanmean(metrics["test_precision"]), "std":np.nanstd(metrics["test_precision"]), "values":metrics["test_precision"]},
-            "test_recall": {"mean":np.nanmean(metrics["test_recall"]), "std":np.nanstd(metrics["test_recall"]), "values":metrics["test_recall"]},
-            "test_f": {"mean":np.nanmean(metrics["test_f"]), "std":np.nanstd(metrics["test_f"]), "values":metrics["test_f"]},
             "test_predictions": metrics["test_predictions"],
             "weights": metrics["weights"],
         }
@@ -218,20 +200,14 @@ class Model():
         print(".", end='')
         if debug:
             print("Iterations : %d Lambda : %.2f, Threshold : %.2f" % (iterations, val_dict['lamda'], threshold))
-            print("Training loss : %.2f+/-%.2f, precision : %.2f+/-%.2f, recall : %.2f+/-%.2f, F : %.2f+/-%.2f" % 
+            print("Training loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" % 
                   (results["train_loss"]["mean"], results["train_loss"]["std"],
-                   results["train_precision"]["mean"], results["train_precision"]["std"],
-                   results["train_recall"]["mean"], results["train_recall"]["std"],
-                   results["train_f"]["mean"], results["train_f"]["std"]))
-            print("Validation loss : %.2f+/-%.2f, precision : %.2f+/-%.2f, recall : %.2f+/-%.2f, F : %.2f+/-%.2f" % 
+                   results["train_precision"]["mean"], results["train_precision"]["std"]))
+            print("Validation loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" % 
                   (results["val_loss"]["mean"], results["val_loss"]["std"],
-                   results["val_precision"]["mean"], results["val_precision"]["std"],
-                   results["val_recall"]["mean"], results["val_recall"]["std"],
-                   results["val_f"]["mean"], results["val_f"]["std"]))
-            print("Test loss : %.2f+/-%.2f, precision : %.2f+/-%.2f, recall : %.2f+/-%.2f, F : %.2f+/-%.2f" % 
+                   results["val_precision"]["mean"], results["val_precision"]["std"]))
+            print("Test loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" % 
                   (results["test_loss"]["mean"], results["test_loss"]["std"],
-                   results["test_precision"]["mean"], results["test_precision"]["std"],
-                   results["test_recall"]["mean"], results["test_recall"]["std"],
-                   results["test_f"]["mean"], results["test_f"]["std"]))
+                   results["test_precision"]["mean"], results["test_precision"]["std"]))
 
         return results
