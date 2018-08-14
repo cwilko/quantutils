@@ -53,9 +53,7 @@ class MIAssembly:
 		return self.get_predictions_with_dataset(csvData, training_id, debug)
 
 	# Local client
-	def get_local_predictions_with_dataset_id(self, dataset_id, training_run_id, start=None, end=None, debug=False):
-
-		from quantutils.model.mimodelclient import MIModelClient
+	def get_local_predictions_with_dataset_id(self, mi_client, dataset_id, training_run_id, start=None, end=None, debug=False):
 
 		# Get the dataset from storage, crop and strip out labels
 		dataset, _ = self.mi.get_dataset_by_id(dataset_id)
@@ -68,4 +66,4 @@ class MIAssembly:
 		obj["tz"] = dataset.index.tz.zone
 		obj["index"] = [date.isoformat() for date in dataset.index.tz_localize(None)]
 
-		return MIModelClient().score(training_run_id, obj)
+		return mi_client.score(training_run_id, obj)
