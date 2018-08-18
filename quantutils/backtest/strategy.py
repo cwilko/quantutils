@@ -1,6 +1,5 @@
 import numpy as np
 from uuid import *
-from trading import *
 
 # ======================          
 # Strategy Class
@@ -23,22 +22,22 @@ class Strategy:
     def display(self):
         
         # Strategy Statistics
-        print
-        print "=" * (len(self.name) + 14)
-        print "Strategy ID : %s " % self.name
-        print "Aritmetic Mean = %.2f%%" % (self.amean * 100)
-        print "Volatility = %.2f%%" % (self.std * sqrt(self.period) * 100)
-        print "Sharpe Ratio = %.2f" % self.sharpe
-        print "Kelly Optimal Leverage = %.2f" % self.kelly
+        print()
+        print("=" * (len(self.name) + 14))
+        print("Strategy ID : %s " % self.name)
+        print("Aritmetic Mean = %.2f%%" % (self.amean * 100))
+        print("Volatility = %.2f%%" % (self.std * sqrt(self.period) * 100))
+        print("Sharpe Ratio = %.2f" % self.sharpe)
+        print("Kelly Optimal Leverage = %.2f" % self.kelly)
         
         # Execution Statistics
-        print "Strategy Leverage = %.2f" % self.leverage
-        print "Geometric Mean Annual Return = %.2f%%" % (self.gmean * 100)
-        print "Max Drawdown = %.2f%%" % (self.maxDD * 100)
-        print "Max Drawdown Duration = %d days" % self.maxDDD
-        print "Return over Maximum Drawdown (RoMaD) = %.2f" % self.romad        
-        print "APR = %.2f%%" % (self.APR * 100)
-        print "=" * (len(self.name) + 14)
+        print("Strategy Leverage = %.2f" % self.leverage)
+        print("Geometric Mean Annual Return = %.2f%%" % (self.gmean * 100))
+        print("Max Drawdown = %.2f%%" % (self.maxDD * 100))
+        print("Max Drawdown Duration = %d days" % self.maxDDD)
+        print("Return over Maximum Drawdown (RoMaD) = %.2f" % self.romad)
+        print("APR = %.2f%%" % (self.APR * 100))
+        print("=" * (len(self.name) + 14))
         
         
 class StocksStrategy(Strategy):

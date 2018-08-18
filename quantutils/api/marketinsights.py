@@ -42,7 +42,7 @@ class MarketInsights:
                           } \
                 }
         url = "".join([self.credentials["endpoint"],"/miol-prod/api/v1/datasets?filter=",json.dumps(query)])
-        resp = requests.get(url=url, headers=headers, timeout=60) 
+        resp = requests.get(url=url, headers=headers, timeout=120) 
         if debug: 
             print(resp.text)
         dataset = json.loads(resp.text)[0]
@@ -183,7 +183,7 @@ class MarketInsights:
                    'accept': 'application/json' 
                   }        
         url = "".join([self.credentials["endpoint"],"/miol-prod/marketinsights/predict/", training_run_id])
-        resp = requests.post(url=url, headers=headers, data=featureSet, timeout=60)  
+        resp = requests.post(url=url, headers=headers, data=featureSet, timeout=120)  
         if debug:
             print(featureSet)
             print(url)
