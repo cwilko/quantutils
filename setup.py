@@ -7,6 +7,9 @@ os.system('pip install git+https://github.com/locke105/pylogmet.git')
 os.system('pip install plotly')
 os.system('pip install ibm-cos-sdk')
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 setup(
     # This is the name of your project. The first time you publish this
     # package, this name will be registered for you. It will determine how
@@ -34,6 +37,8 @@ setup(
     # https://packaging.python.org/specifications/core-metadata/#summary
     description='A set of python quantative finance tools',  # Required
 
+    install_requires=requirements,
+
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
@@ -43,7 +48,6 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
+    packages=find_packages(exclude=['contrib', 'docs', 'tests'])  # Required
 
-   
 )

@@ -66,10 +66,9 @@ def cdf2(alpha, beta, gamma, delta, steps, stepSize):
     y = [float(i[1]) for i in out]
     return (np.array(x),np.array(y));
     
-def stable(stdin):  
-    print "HELLO 2"
+def stable(stdin): 
     # Call the STABLE.EXE program, input the data file
-    p = subprocess.Popen(["C:\Users\cwilkin\Documents\stablec.exe"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    p = subprocess.Popen(["C:\\Users\\cwilkin\\Documents\\stablec.exe"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     out, err = p.communicate(input=stdin);
     out = out.split('\r\n');
     return out;    

@@ -1,43 +1,42 @@
 import numpy as np
 
-def MA(values, period):
-    ma = np.zeros(len(values)) 
-    for n in range(period-1,len(ma)):
-        ma[n] = np.mean(values[n-(period-1):n])
-    #ma[0:period] = 0 #[ma[period-1]]*period
-    return ma
-    
-def MA_prog(values, period):
-    ma = np.zeros(len(values)) 
-    for n in range(0, len(ma)):
-        if n < period :
-            ma[n] = np.mean(values[0:n+1])
-        else:
-            ma[n] = np.mean(values[n-(period-1):n+1])
-    return ma
-    
-def DMA(values, period, offset):
-    ma = np.zeros(len(values)) 
-    for n in range(period-1,len(ma)-offset):
-        ma[n+offset] = np.mean(values[n-(period-1):n])
-   #ma[0:period+offset] = 0 #[ma[period-1+offset]]*(period+offset)
-    return ma
+def rolling_window(a, window):
+    shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
+    strides = a.strides + (a.strides[-1],)
+    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
-def DMA_prog(values, period, offset):
-    ma = MA_prog(values, period) 
-    dma = np.zeros(len(values))
-    if offset > 0:   
-        for n in range(offset - 1,len(ma)):
-            #if n < (offset-1):
-            #    dma[n] = DMA_prog(values, 2*(n+1), n+1)[n]
-            #else:
-                dma[n] = ma[n - (offset - 1)]
-    elif offset < 0:
-        for n in range(0, len(ma) - abs(offset)):
-            dma[n] = ma[n + (abs(offset) - 1)]
-    else:
-        dma = ma
-    return dma
+def rolling_function(values, function, window, offset=0):
+    x = function(rolling_window(values, window))
+    pad = int(np.floor((window/2)-.5)+offset)
+    r = np.empty(len(values)) * np.nan
+    r[pad:pad+len(x)] = x
+    return r
+
+# Return values of an autocorrelation function
+def autocorr(x):
+    result = np.correlate(x, x, mode='full')
+    result = result[result.size//2:]
+    result = result / max(result)
+    return result
+
+def MA(values, window, offset=0):
+    _fun = lambda x: np.mean(x, axis=1)
+    return rolling_function(values, _fun, window, offset)
+
+def EMA(values, window, offset=0):
+    return np.roll(values.ewm(span=window, min_periods=window).mean(), -(window//2)+offset)
+
+def MStd(values, window, offset=0):
+    _fun = lambda x: np.std(x, axis=1)
+    return rolling_function(values, _fun, window, offset)
+
+def MVar(values, window, offset=0):
+    _fun = lambda x: np.var(x, axis=1)
+    return rolling_function(values, _fun, window, offset)
+
+def MACF(values, lag, window, offset=0):
+    _fun = lambda x: [autocorr(w)[lag] for w in x]
+    return rolling_function(values, _fun, window, offset)
     
 def calculateInflexions(period, prices, dates, data_start):
     
@@ -52,8 +51,8 @@ def calculateInflexions(period, prices, dates, data_start):
     
     # Algorithm
     
-    dma_lag = MA_prog(prices, period)
-    dma_lead = DMA_prog(prices, period, period/2)
+    dma_lag = MA(prices, period, period//2)
+    dma_lead = MA(prices, period)
     
     uptrend = 0
     if dma_lag[sample_count] > dma_lead[sample_count]:
