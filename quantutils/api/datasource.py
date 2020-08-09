@@ -73,7 +73,7 @@ class MarketDataStore:
                 
             # Get HDFStore
             hdfFile = DS_path + datasource["name"] + ".hdf"
-            hdfStore = pandas.HDFStore(hdfFile, 'rw')
+            hdfStore = pandas.HDFStore(hdfFile, 'w')
             
             for market in datasource["markets"]:
 
