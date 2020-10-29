@@ -1,7 +1,8 @@
 from __future__ import print_function
 import numpy as np
-import tensorflow as tf #v1.3.0 from DSX
+import tensorflow as tf  # v1.3.0 from DSX
 import quantutils.model.utils as mlutils
+
 
 class Model():
 
@@ -10,17 +11,17 @@ class Model():
         self.NTWK_CNF = CONFIG['network']
 
         self.createNetwork(NUM_FEATURES, NUM_LABELS)
-        
-    #### Define the architecture
+
+    # Define the architecture
     def createNetwork(self, NUM_FEATURES, NUM_LABELS):
-        
+
         self.NUM_FEATURES = NUM_FEATURES
         self.NUM_LABELS = NUM_LABELS
 
         HIDDEN_UNITS = self.NTWK_CNF["hidden_units"]
         # The random seed that defines initialization.
         SEED = self.NTWK_CNF["weights"]["seed"]
-        # The stdev of the initialised random weights 
+        # The stdev of the initialised random weights
         STDEV = self.NTWK_CNF["weights"]["stdev"]
         # Network bias
         BIAS = self.NTWK_CNF["bias"]
@@ -31,9 +32,9 @@ class Model():
         tf.set_random_seed(SEED)
 
         # The variables below hold all the trainable weights. For each, the
-        # parameter defines how the variables will be initialized. 
-        self.Theta1 = tf.Variable( tf.truncated_normal([HIDDEN_UNITS, NUM_FEATURES], stddev=STDEV, seed=SEED))
-        self.Theta2 = tf.Variable( tf.truncated_normal([NUM_LABELS, HIDDEN_UNITS], stddev=STDEV, seed=SEED))
+        # parameter defines how the variables will be initialized.
+        self.Theta1 = tf.Variable(tf.truncated_normal([HIDDEN_UNITS, NUM_FEATURES], stddev=STDEV, seed=SEED))
+        self.Theta2 = tf.Variable(tf.truncated_normal([NUM_LABELS, HIDDEN_UNITS], stddev=STDEV, seed=SEED))
         self.bias = tf.Variable(tf.constant(BIAS, shape=[NUM_LABELS]))
 
         # This is where training samples and labels are fed to the graph.
@@ -51,12 +52,12 @@ class Model():
 
         # Change the weights by subtracting derivative with respect to that weight
         self.loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=self.train_labels_node, logits=yhat))
-        # Regularization using L2 Loss function 
+        # Regularization using L2 Loss function
         regularizer = tf.nn.l2_loss(self.Theta1) + tf.nn.l2_loss(self.Theta2)
         reg = (self.lam / tf.to_float(tf.shape(self.train_labels_node)[0])) * regularizer
         loss_reg = self.loss + reg
 
-        # Optimizer: 
+        # Optimizer:
 
         # Gradient Descent
         self.optimizer = self.createOptimizer(loss_reg)
@@ -66,21 +67,21 @@ class Model():
         self.prediction = tf.sigmoid(yhat)
 
     ## The Model definition ##
-    def model(self, X, Theta1, Theta2, bias):        
-        # Perceptron        
-        layer1 = tf.nn.sigmoid(tf.matmul(X, tf.transpose(Theta1)))                            
-        output = tf.nn.bias_add(tf.matmul(layer1, tf.transpose(Theta2)),bias)
+    def model(self, X, Theta1, Theta2, bias):
+        # Perceptron
+        layer1 = tf.nn.sigmoid(tf.matmul(X, tf.transpose(Theta1)))
+        output = tf.nn.bias_add(tf.matmul(layer1, tf.transpose(Theta2)), bias)
         return output
 
     def createOptimizer(self, loss):
-        return tf.contrib.opt.ScipyOptimizerInterface(loss, options={'maxiter':self.OPT_CNF['maxIter']})
-        
-    def minimize(self, feed_dict):        
+        return tf.contrib.opt.ScipyOptimizerInterface(loss, options={'maxiter': self.OPT_CNF['maxIter']})
+
+    def minimize(self, feed_dict):
         #optimizer.minimize(feed_dict=feed_dict, fetches=[loss_reg], loss_callback=loss_callback)
         self.optimizer.minimize(feed_dict=feed_dict)
 
     def evaluate(self, feed_dict, threshold):
-        loss = self.loss.eval(feed_dict)     
+        loss = self.loss.eval(feed_dict)
         predictions = self.prediction.eval(feed_dict)
         precision = mlutils.evaluate(predictions, feed_dict[self.train_labels_node], threshold)
         return loss, precision, predictions
@@ -91,26 +92,26 @@ class Model():
     def getWeights(self):
         return np.concatenate([self.Theta1.eval().flatten(), self.Theta2.eval().flatten(), self.bias.eval().flatten()]).tolist()
 
-    def predict(self, weights, data): 
+    def predict(self, weights, data):
 
         HIDDEN_UNITS = self.NTWK_CNF["hidden_units"]
-        predictions = np.empty((0,len(data), self.NUM_LABELS))
+        predictions = np.empty((0, len(data), self.NUM_LABELS))
 
         with tf.Session() as sess:
 
             sess.run(tf.global_variables_initializer())
 
             for iteration in weights:
-            
-                Theta1 = iteration[:(HIDDEN_UNITS*self.NUM_FEATURES)].reshape(HIDDEN_UNITS, self.NUM_FEATURES)      
-                Theta2 = iteration[(HIDDEN_UNITS*self.NUM_FEATURES):-self.NUM_LABELS].reshape(self.NUM_LABELS, HIDDEN_UNITS)
+
+                Theta1 = iteration[:(HIDDEN_UNITS * self.NUM_FEATURES)].reshape(HIDDEN_UNITS, self.NUM_FEATURES)
+                Theta2 = iteration[(HIDDEN_UNITS * self.NUM_FEATURES):-self.NUM_LABELS].reshape(self.NUM_LABELS, HIDDEN_UNITS)
                 bias = iteration[-self.NUM_LABELS:]
-                        
+
                 feed_dict = {
-                    self.train_data_node:data,
-                    self.weights1:Theta1,
-                    self.weights2:Theta2,
-                    self.weights3:bias
+                    self.train_data_node: data,
+                    self.weights1: Theta1,
+                    self.weights2: Theta2,
+                    self.weights3: bias
                 }
 
                 predictions = np.concatenate([predictions, [self.prediction.eval(feed_dict)]])
@@ -118,45 +119,45 @@ class Model():
         return predictions
 
     def to_feed_dict(self, string_dict):
-        return { \
-                self.train_data_node: string_dict['features'], \
-                self.train_labels_node: string_dict['labels'], \
-                self.lam: string_dict['lamda'], \
-                }
+        return {
+            self.train_data_node: string_dict['features'],
+            self.train_labels_node: string_dict['labels'],
+            self.lam: string_dict['lamda'],
+        }
 
     def train(self, train_dict, val_dict, test_dict, threshold, iterations=50, debug=True):
-        
+
         tf.logging.set_verbosity(tf.logging.ERROR)
-        
+
         SEED = self.NTWK_CNF["weights"]["seed"]
 
         metrics = {
-            "train_loss":[],
-            "train_precision":[],
-            "val_loss":[],
-            "val_precision":[],
-            "test_loss":[],
-            "test_precision":[],
-            "test_predictions":[],
-            "weights":[]
+            "train_loss": [],
+            "train_precision": [],
+            "val_loss": [],
+            "val_precision": [],
+            "test_loss": [],
+            "test_precision": [],
+            "test_predictions": [],
+            "weights": []
         }
-        
-        for i in range(0,iterations):
-            
+
+        for i in range(0, iterations):
+
             for j in range(0, self.OPT_CNF['minimize_iterations']):
-                
+
                 # Create a new interactive session that we'll use in
                 # subsequent code cells.
                 s = tf.InteractiveSession()
                 s.as_default()
-                
+
                 # Turn on determinism for a set of tf variables/object instances (N.B. also need to set SEED on variables)
                 np.random.seed(SEED)
                 tf.set_random_seed(SEED)
-                            
+
                 # Initialize all the variables we defined above.
                 tf.global_variables_initializer().run()
-                            
+
                 self.minimize(self.to_feed_dict(train_dict))
                 train_loss, train_precision, _ = self.evaluate(self.to_feed_dict(train_dict), threshold)
 
@@ -165,48 +166,48 @@ class Model():
                     metrics["train_loss"].append(train_loss)
                     metrics["train_precision"].append(train_precision)
 
-                    val_loss, val_precision, _= self.evaluate(self.to_feed_dict(val_dict), threshold)
+                    val_loss, val_precision, _ = self.evaluate(self.to_feed_dict(val_dict), threshold)
 
                     metrics["val_loss"].append(val_loss)
                     metrics["val_precision"].append(val_precision)
-                    
+
                     test_loss, test_precision, test_predictions = self.evaluate(self.to_feed_dict(test_dict), threshold)
 
                     metrics["test_loss"].append(test_loss)
                     metrics["test_precision"].append(test_precision)
-                    metrics["test_predictions"] = test_predictions # return the last set of predictions ( TODO could return the one with the best val score)
+                    metrics["test_predictions"] = test_predictions  # return the last set of predictions ( TODO could return the one with the best val score)
 
                     metrics["weights"].append(self.getWeights())
 
                     del s
-                    break;
+                    break
                 else:
                     del s
-            
+
             if (j >= self.OPT_CNF['minimize_iterations']):
                 print("ERROR : Failed to minimise function")
-                
+
         results = {
-            "train_loss": {"mean":np.nanmean(metrics["train_loss"]), "std":np.nanstd(metrics["train_loss"]), "values":metrics["train_loss"]},
-            "train_precision": {"mean":np.nanmean(metrics["train_precision"]), "std":np.nanstd(metrics["train_precision"]), "values":metrics["train_precision"]},
-            "val_loss": {"mean":np.nanmean(metrics["val_loss"]), "std":np.nanstd(metrics["val_loss"]), "values":metrics["val_loss"]},
-            "val_precision":{"mean":np.nanmean(metrics["val_precision"]), "std":np.nanstd(metrics["val_precision"]), "values":metrics["val_precision"]},
-            "test_loss": {"mean":np.nanmean(metrics["test_loss"]), "std":np.nanstd(metrics["test_loss"]), "values":metrics["test_loss"]},
-            "test_precision":{"mean":np.nanmean(metrics["test_precision"]), "std":np.nanstd(metrics["test_precision"]), "values":metrics["test_precision"]},
+            "train_loss": {"mean": np.nanmean(metrics["train_loss"]), "std": np.nanstd(metrics["train_loss"]), "values": metrics["train_loss"]},
+            "train_precision": {"mean": np.nanmean(metrics["train_precision"]), "std": np.nanstd(metrics["train_precision"]), "values": metrics["train_precision"]},
+            "val_loss": {"mean": np.nanmean(metrics["val_loss"]), "std": np.nanstd(metrics["val_loss"]), "values": metrics["val_loss"]},
+            "val_precision": {"mean": np.nanmean(metrics["val_precision"]), "std": np.nanstd(metrics["val_precision"]), "values": metrics["val_precision"]},
+            "test_loss": {"mean": np.nanmean(metrics["test_loss"]), "std": np.nanstd(metrics["test_loss"]), "values": metrics["test_loss"]},
+            "test_precision": {"mean": np.nanmean(metrics["test_precision"]), "std": np.nanstd(metrics["test_precision"]), "values": metrics["test_precision"]},
             "test_predictions": metrics["test_predictions"],
             "weights": metrics["weights"],
         }
-        
+
         print(".", end='')
         if debug:
             print("Iterations : %d Lambda : %.2f, Threshold : %.2f" % (iterations, val_dict['lamda'], threshold))
-            print("Training loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" % 
+            print("Training loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" %
                   (results["train_loss"]["mean"], results["train_loss"]["std"],
                    results["train_precision"]["mean"], results["train_precision"]["std"]))
-            print("Validation loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" % 
+            print("Validation loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" %
                   (results["val_loss"]["mean"], results["val_loss"]["std"],
                    results["val_precision"]["mean"], results["val_precision"]["std"]))
-            print("Test loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" % 
+            print("Test loss : %.2f+/-%.2f, precision : %.2f+/-%.2f" %
                   (results["test_loss"]["mean"], results["test_loss"]["std"],
                    results["test_precision"]["mean"], results["test_precision"]["std"]))
 
