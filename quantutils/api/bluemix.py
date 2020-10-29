@@ -13,7 +13,9 @@ import ibm_boto3
 import ibm_botocore
 import hashlib
 
+
 class Logger:
+
     def __init__(self, appname, credentials_store):
 
         self.appname = appname
@@ -27,19 +29,19 @@ class Logger:
 
     def info(self, msg):
         print("".join(["INFO: ", msg]))
-        self.log.emit_log({'app_name': self.appname,'type': 'info','message': msg})
-
+        self.log.emit_log({'app_name': self.appname, 'type': 'info', 'message': msg})
 
     def error(self, msg):
         print("".join(["ERROR: ", msg]))
-        self.log.emit_log({'app_name': self.appname,'type': 'error','message': msg})
-
+        self.log.emit_log({'app_name': self.appname, 'type': 'error', 'message': msg})
 
     def debug(self, msg):
         print("".join(["DEBUG: ", msg]))
-        self.log.emit_log({'app_name': self.appname,'type': 'debug','message': msg})
+        self.log.emit_log({'app_name': self.appname, 'type': 'debug', 'message': msg})
+
 
 class Metrics:
+
     def __init__(self, credentials_store):
         self.credentials = credentials_store.getSecrets('metrics_cred')
 
@@ -48,43 +50,43 @@ class Metrics:
         headers['Content-Type'] = 'application/json'
         headers['x-auth-scope-id'] = ''.join(['s-', self.credentials['space_id']])
         headers['x-auth-user-token'] = ''.join(['apikey ', self.credentials['token']])
-        resp = requests.post(url=self.credentials['host'], headers=headers, data=json.dumps(data) )
+        resp = requests.post(url=self.credentials['host'], headers=headers, data=json.dumps(data))
         return resp
 
 
 class ObjectStore:
-    
+
     def __init__(self, credentials_store):
         credentials = credentials_store.getSecrets('object_storage_cred')
         self.load_obj_storage_token(credentials)
-    
+
     def load_obj_storage_token(self, obj_storage_cred):
-    
+
         url = ''.join([obj_storage_cred['auth_url'], '/v3/auth/tokens'])
         data = {'auth': {'identity': {'methods': ['password'],
-                'password': {'user': {'name': obj_storage_cred['username'],'domain': {'id': obj_storage_cred['domainId']},
-                'password': obj_storage_cred['password']}}}}}
+                                      'password': {'user': {'name': obj_storage_cred['username'], 'domain': {'id': obj_storage_cred['domainId']},
+                                                            'password': obj_storage_cred['password']}}}}}
         headers = {'Content-Type': 'application/json'}
         resp = requests.post(url=url, data=json.dumps(data), headers=headers)
         resp_body = resp.json()
         for e1 in resp_body['token']['catalog']:
-            if(e1['type']=='object-store'):
+            if(e1['type'] == 'object-store'):
                 for e2 in e1['endpoints']:
-                            if(e2['interface']=='public'and e2['region']=='dallas'):
-                                endpoint_url = e2['url']
+                    if(e2['interface'] == 'public'and e2['region'] == 'dallas'):
+                        endpoint_url = e2['url']
         token = resp.headers['x-subject-token']
 
         self.endpoint_url = endpoint_url
         self.token = token
-        
-    def put_file(self, container, local_file_name, filename):  
+
+    def put_file(self, container, local_file_name, filename):
         """This functions returns a StringIO object containing
         the file content from Bluemix Object Storage V3."""
 
-        f = open(local_file_name,'r')    
+        f = open(local_file_name, 'r')
         headers = {'X-Auth-Token': self.token, 'accept': 'application/json'}
         url = "".join([self.endpoint_url, "/", container, "/", filename])
-        resp = requests.put(url=url, headers=headers, data = f.read() )
+        resp = requests.put(url=url, headers=headers, data=f.read())
         print(resp.text)
 
     def get_file(self, container, filename):
@@ -96,22 +98,23 @@ class ObjectStore:
         resp = requests.get(url=url, headers=headers)
         return StringIO(resp.text)
 
+
 class CloudObjectStore:
-    
+
     def __init__(self, credentials_store):
         credentials = credentials_store.getSecrets('ibm_cos_cred')
         self.cos = self.connect(credentials)
-    
+
     def connect(self, credentials):
         return ibm_boto3.resource('s3',
-            ibm_api_key_id=credentials["apikey"],
-            ibm_service_instance_id=credentials["resource_instance_id"],
-            ibm_auth_endpoint=credentials["auth_endpoint"],
-            config=ibm_botocore.client.Config(signature_version='oauth'),
-            endpoint_url=credentials["service_endpoint"])
-        
-    def put(self, bucket, key, local_file_name): 
-        self.getOrCreateBucket(bucket) 
+                                  ibm_api_key_id=credentials["apikey"],
+                                  ibm_service_instance_id=credentials["resource_instance_id"],
+                                  ibm_auth_endpoint=credentials["auth_endpoint"],
+                                  config=ibm_botocore.client.Config(signature_version='oauth'),
+                                  endpoint_url=credentials["service_endpoint"])
+
+    def put(self, bucket, key, local_file_name):
+        self.getOrCreateBucket(bucket)
         self.cos.Object(bucket, key).put(Body=open(local_file_name, 'rb'))
 
     def delete(self, bucket, key):
@@ -130,19 +133,19 @@ class CloudObjectStore:
     def getOrCreateBucket(self, bucket):
         exists = False
         for cosBucket in self.cos.buckets.all():
-            if (bucket == cosBucket.name): 
-                exists=True
+            if (bucket == cosBucket.name):
+                exists = True
 
         if (not exists):
             self.cos.create_bucket(Bucket=bucket, CreateBucketConfiguration={'LocationConstraint': 'us-standard'})
 
     def keyExists(self, bucket, key):
-        exists=True
+        exists = True
         try:
             self.cos.Object(bucket, key).load()
         except ibm_botocore.exceptions.ClientError as e:
             if e.response['Error']['Code'] == "404":
-                exists=False
+                exists = False
             else:
                 # Something else has gone wrong.
                 raise
