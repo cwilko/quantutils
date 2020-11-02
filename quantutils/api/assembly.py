@@ -17,7 +17,7 @@ class MIAssembly:
     def get_predictions_with_dataset_id(self, dataset_id, training_run_id, start=None, end=None, debug=False):
 
         # Get the dataset from storage, crop and strip out labels
-        dataset, _ = self.mi.get_dataset_by_id(dataset_id)
+        dataset, _ = self.mi.get_dataset_by_id(dataset_id, debug)
         dataset = dataset[start:end].iloc[:, :-1]
 
         if debug:

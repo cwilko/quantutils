@@ -1,10 +1,10 @@
 import pandas
 import pytz
 import json
-import requests
 import time
 import hashlib
 import dateutil.parser as parser
+import quantutils.core.http as http
 
 
 class MarketInsights:
@@ -21,10 +21,7 @@ class MarketInsights:
             'content-type': 'application/json'
         }
         url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/datasets"])
-        resp = requests.put(url=url, headers=headers, data=dataset)
-        if debug:
-            print(resp.text)
-        return json.loads(resp.text)
+        return http.put(url=url, headers=headers, data=dataset, debug=debug)
 
     def get_dataset(self, dataset_desc, market, debug=False):
         return self.get_dataset_by_id(Dataset.generateId(dataset_desc, market), debug)
@@ -43,10 +40,8 @@ class MarketInsights:
             }
         }
         url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/datasets?filter=", json.dumps(query)])
-        resp = requests.get(url=url, headers=headers, timeout=120)
-        if debug:
-            print(resp.text)
-        dataset = json.loads(resp.text)[0]
+        resp = http.get(url=url, headers=headers, debug=debug)
+        dataset = resp[0]
         return [Dataset.jsontocsv(dataset), dataset["dataset_desc"]]
 
     # TODO  (without getting data too)
@@ -79,16 +74,13 @@ class MarketInsights:
             if (update):
                 url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/predictions"])
                 for prediction in data:
-                    resp = requests.put(url=url, headers=headers, data=json.dumps(prediction))
-                    if debug:
-                        print(resp.text)
+                    resp = http.put(url=url, headers=headers, data=json.dumps(prediction), debug=debug)
+
             else:
                 url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/predictions"])
-                resp = requests.post(url=url, headers=headers, data=json.dumps(data))
+                resp = http.post(url=url, headers=headers, data=json.dumps(data), debug=debug)
 
-            if debug:
-                print(resp.text)
-            return json.loads(resp.text)
+            return resp
 
     # TODO : Deprecated
     def get_predictions(self, market, modelId, start=None, end=None, debug=False):
@@ -101,10 +93,8 @@ class MarketInsights:
         query = Predictions.getQuery(market, modelId, start, end)
 
         url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/predictions?filter=", json.dumps(query)])
-        resp = requests.get(url=url, headers=headers)
-        if debug:
-            print(resp.text)
-        return Predictions.jsontocsv(json.loads(resp.text))
+        resp = http.get(url=url, headers=headers, debug=debug)
+        return Predictions.jsontocsv(resp)
 
     def delete_predictions(self, market, modelId, start=None, end=None, debug=False):
 
@@ -118,11 +108,9 @@ class MarketInsights:
         if (len(data) > 0):
             for prediction in data:
                 url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/predictions/", prediction["id"]])
-                resp = requests.delete(url=url, headers=headers, data=json.dumps(prediction))
+                resp = http.delete(url=url, headers=headers, data=json.dumps(prediction), debug=debug)
                 if debug:
                     print(prediction)
-                    print(resp.text)
-
             return resp
         else:
             return []
@@ -134,10 +122,7 @@ class MarketInsights:
             'content-type': 'application/json'
         }
         url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/models"])
-        resp = requests.put(url=url, headers=headers, data=json.dumps(data))
-        if debug:
-            print(resp.text)
-        return json.loads(resp.text)
+        return http.put(url=url, headers=headers, data=json.dumps(data), debug=debug)
 
     def get_model(self, modelId, debug=False):
         headers = {
@@ -146,10 +131,7 @@ class MarketInsights:
             'accept': 'application/json'
         }
         url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/models/", modelId])
-        resp = requests.get(url=url, headers=headers)
-        if debug:
-            print(resp.text)
-        return json.loads(resp.text)
+        return http.get(url=url, headers=headers, debug=debug)
 
     def put_training_run(self, data, debug=False):
         headers = {
@@ -158,10 +140,7 @@ class MarketInsights:
             'content-type': 'application/json'
         }
         url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/training_runs"])
-        resp = requests.put(url=url, headers=headers, data=json.dumps(data))
-        if debug:
-            print(resp.text)
-        return json.loads(resp.text)
+        return http.put(url=url, headers=headers, data=json.dumps(data), debug=debug)
 
     def get_training_run(self, training_run_id, debug=False):
         headers = {
@@ -170,10 +149,7 @@ class MarketInsights:
             'accept': 'application/json'
         }
         url = "".join([self.credentials["endpoint"], "/miol-prod/api/v1/training_runs/", training_run_id])
-        resp = requests.get(url=url, headers=headers)
-        if debug:
-            print(resp.text)
-        return json.loads(resp.text)
+        return http.get(url=url, headers=headers, debug=debug)
 
     def get_score(self, data, training_run_id, debug=False):
         featureSet = Dataset.csvtojson(data, {}, "Score Data", createId=False)
@@ -184,12 +160,11 @@ class MarketInsights:
             'accept': 'application/json'
         }
         url = "".join([self.credentials["endpoint"], "/miol-prod/marketinsights/predict/", training_run_id])
-        resp = requests.post(url=url, headers=headers, data=featureSet, timeout=120)
+        resp = http.post(url=url, headers=headers, data=featureSet, debug=debug)
         if debug:
             print(featureSet)
             print(url)
-            print(resp.text)
-        return Dataset.jsontocsv(json.loads(resp.text))
+        return Dataset.jsontocsv(resp)
 
 
 class Dataset:
