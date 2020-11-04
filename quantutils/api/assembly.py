@@ -23,6 +23,9 @@ class MIAssembly:
         if debug:
             print(dataset)
 
+        if dataset.empty:  # No predictions in this time range
+            return None
+
         return self.get_predictions_with_dataset(dataset, training_run_id, debug)
 
     def get_predictions_with_raw_data(self, data, training_id, debug=False):
@@ -67,6 +70,9 @@ class MIAssembly:
 
         if debug:
             print(dataset)
+
+        if dataset.empty:  # No predictions in this time range
+            return None
 
         obj = {}
         obj["data"] = dataset.values.tolist()
