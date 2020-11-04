@@ -80,12 +80,15 @@ def getSignals(predictions, data_y, threshold):
     signals[(predictions < threshold).all(axis=1)] = 0
     return signals
 
+# Accepts a Dataframe of float predictions, returns an array of signals
 
-def getPredictionSignals(predictions, threshold):
+
+def getPredictionSignals(predictions, threshold=0):
     signals = np.ones(len(predictions))
     a = np.argmax(ppl.onehot(predictions), axis=1)
     signals[(a == 1)] = -1  # Set any DOWN signals to -1 (UP signals will pick up the default of 1)
-    signals[(predictions < threshold).all(axis=1)] = 0
+    # Implement a threshold AND ensure any 0-values predictions results in a 0 signal
+    signals[(predictions <= threshold).all(axis=1)] = 0
     return signals
 
 
