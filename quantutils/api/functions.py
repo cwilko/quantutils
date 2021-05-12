@@ -1,22 +1,21 @@
 import json
 import pandas
 import requests
-import base64
+from quantutils.api.bluemix import Token
 
 
 class Functions:
 
     def __init__(self, credentials_store):
-        credentials = credentials_store.getSecrets('functions_cred')
-        self.credentials = credentials
+        self.credentials = credentials_store.getSecrets('functions_cred')
+        self.token = Token(credentials_store).getToken()
 
     def call_function(self, name, args, debug=False):
-        b64token = base64.b64encode(self.credentials["api_key"].encode("utf-8")).decode("utf-8")
-        headers = {'Content-type': 'application/json', 'Authorization': "".join(["Basic ", b64token])}
+        headers = {'Content-Type': 'application/json', 'Authorization': "".join(["Bearer ", self.token['access_token']])}
         url = "".join([self.credentials["endpoint"], name, "?blocking=true"])
         resp = requests.post(url=url, data=json.dumps(args), headers=headers)
 
-        if debug:
+        if (debug):
             print(resp.text)
 
         return pandas.read_json(json.dumps(json.loads(resp.text)["response"]["result"]), orient='split')

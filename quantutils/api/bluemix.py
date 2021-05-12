@@ -14,6 +14,18 @@ import ibm_botocore
 import hashlib
 
 
+class Token:
+
+    def __init__(self, credentials_store):
+        self.iam_cred = credentials_store.getSecrets('iam_cred')
+
+    def getToken(self):
+        headers = {'Content-Type': 'application/x-www-form-urlencoded', }
+        data = 'grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=' + self.iam_cred['apikey']
+        resp = requests.post(url=self.iam_cred['endpoint'], headers=headers, data=data)
+        return resp.json()
+
+
 class Logger:
 
     def __init__(self, appname, credentials_store):
@@ -52,6 +64,8 @@ class Metrics:
         headers['x-auth-user-token'] = ''.join(['apikey ', self.credentials['token']])
         resp = requests.post(url=self.credentials['host'], headers=headers, data=json.dumps(data))
         return resp
+
+# Deprecated (see CloudObjectStore)
 
 
 class ObjectStore:
