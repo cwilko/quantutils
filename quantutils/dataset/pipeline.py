@@ -7,7 +7,7 @@ import numpy
 
 
 def merge(newData, existingData):
-    print("Merging data...")
+    # print("Merging data...")
     return existingData.combine_first(newData)
 
 ##
@@ -32,7 +32,7 @@ def concat(data1, data2, axis=1):
 ##
 
 
-def cropDate(data, start, end):
+def cropDate(data, start="1979-01-01", end="2050-01-01"):
     return data[start:end]
 
 
