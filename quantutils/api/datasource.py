@@ -43,9 +43,9 @@ class MarketDataStore:
 
                     tsData = ppl.cropDate(tsData, market_info["start"], market_info["end"])
 
+                    # 28/6/21 Move this to before data is saved for performance reasons
                     # Resample all to dataset sample unit (to introduce nans in all missing periods)
-
-                    tsData = ppl.resample(tsData, source["sample_unit"])
+                    # tsData = ppl.resample(tsData, source["sample_unit"])
 
                     tsData = ppl.resample(tsData, sample_unit)
 
@@ -63,9 +63,48 @@ class MarketDataStore:
 
         return marketData
 
+    def appendHDF(self, hdfFile, bucket, data, sample_unit, update=False):
+
+        # Get HDFStore
+        hdfStore = pandas.HDFStore(hdfFile, 'a')
+        append = True
+        # TODO Sort incoming data
+
+        try:
+            if '/' + bucket in hdfStore.keys():
+
+                # Get first,last row
+                nrows = hdfStore.get_storer(bucket).nrows
+                last = hdfStore.select(bucket, start=nrows - 1, stop=nrows)
+
+                # If this is entirely beyond the last element in the file... append
+                # If not... update (incurring a full file re-write and performance hit), or throw exception
+                if not data[data.index <= last.index[0]].empty:
+                    # Update table with overlapped data
+                    storedData = hdfStore.get(bucket)
+                    data = ppl.merge(data, storedData)
+                    append = False
+
+                    if not update:
+                        raise ValueError('Error: Entry already exists for data starting at index ' + str(data.index[0]))
+                else:
+                    data = ppl.merge(last, data)
+
+            data = ppl.resample(data, sample_unit)
+            if append:
+                print("Appending data...")
+                hdfStore.append(bucket, data, format='table', append=True)
+            else:
+                print("Re-writing table data for update...")
+                hdfStore.put(bucket, data, format='table')
+
+        finally:
+            hdfStore.close()
+
     def refreshMarketData(self):
 
         # Loop over datasources...
+        # TODO: In chronological order
 
         for datasource in self.getDatasources():
 
@@ -74,17 +113,10 @@ class MarketDataStore:
 
             # Get HDFStore
             hdfFile = DS_path + datasource["name"] + ".hdf"
-            hdfStore = pandas.HDFStore(hdfFile, 'w')
 
             for market in datasource["markets"]:
 
                 for source in market["sources"]:
-
-                    # Load Dataframe from store
-                    if source["name"] in hdfStore:
-                        tsData = hdfStore[source["name"]]
-                    else:
-                        tsData = pandas.DataFrame()
 
                     # Loop over any source files...
                     for infile in os.listdir(SRC_path):
@@ -108,9 +140,25 @@ class MarketDataStore:
 
                                 newData = ppl.localize(newData, datasource["timezone"], "UTC")
 
-                                tsData = ppl.merge(newData, tsData)
+                                self.appendHDF(hdfFile, source["name"], newData, source["sample_unit"], update=True)
 
-                    ppl.save_hdf(tsData, source["name"], hdfStore)
-                    # TODO : Back up to object storage
+    def getHDF(self, hdfFile, bucket):
 
+        # Get HDFStore
+        hdfStore = pandas.HDFStore(hdfFile, 'r')
+        data = None
+        try:
+            data = hdfStore.get(bucket)
+        finally:
+            hdfStore.close()
+        return data
+
+    # Remove a bucket from a hdfFile
+    def deleteHDF(self, hdfFile, bucket):
+
+        # Get HDFStore
+        hdfStore = pandas.HDFStore(hdfFile, 'a')
+        try:
+            hdfStore.remove(bucket)
+        finally:
             hdfStore.close()

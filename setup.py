@@ -39,6 +39,11 @@ setup(
 
     install_requires=requirements,
 
+    extras_require={
+        'stats': ['matplotlib>=2.2.2', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'scipy>=1.1.0', 'statsmodels>=0.9.0'],
+        'ml': ['tensorflow==1.3.0']
+    },
+
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
