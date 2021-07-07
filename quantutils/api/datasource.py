@@ -9,12 +9,10 @@ class MarketDataStore:
     def __init__(self, root, sources_file="datasources.json"):
         # TODO read root from quantutils properties file
         self.root = root
-
-        # Load datasources
-        self.datasources = json.load(open("".join([root, "/", sources_file])))
+        self.sources_file = sources_file
 
     def getDatasources(self):
-        return self.datasources
+        return json.load(open("".join([self.root, "/", self.sources_file])))
 
     def loadMarketData(self, market_info, sample_unit):
 
