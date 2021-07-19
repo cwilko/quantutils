@@ -1,15 +1,23 @@
 import pandas
 import quantutils.dataset.pipeline as ppl
 from quantutils.core.decorators import synchronized
+from quantutils.api.marketinsights import PriceStore
 
 
 class MarketDataStore:
 
-    def __init__(self, root, hdfFile="data.hdf"):
-        self.hdfFile = root + "/" + hdfFile
+    def __new__(cls, location, remote=False, hdfFile="data.hdf"):
+
+        if (remote):
+            return MarketDataStoreRemote(location)
+        else:
+            return super().__new__(cls)
+
+    def __init__(self, location, hdfFile="data.hdf"):
+        self.hdfFile = location + "/" + hdfFile
 
     # Load data from an ordered list of sources
-    def loadMarketData(self, start, end, sources, sample_unit):
+    def aggregate(self, start, end, sources, sample_unit):
 
         hdfStore = pandas.HDFStore(self.hdfFile, 'r')
 
@@ -54,7 +62,7 @@ class MarketDataStore:
         return marketData
 
     @synchronized
-    def appendHDF(self, source_id, data, source_sample_unit, update=False):
+    def append(self, source_id, data, source_sample_unit, update=False):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'a')
@@ -68,6 +76,9 @@ class MarketDataStore:
                 # Get first,last row
                 nrows = hdfStore.get_storer(source_id).nrows
                 last = hdfStore.select(source_id, start=nrows - 1, stop=nrows)
+
+                print(last)
+                print(data)
 
                 # If this is entirely beyond the last element in the file... append
                 # If not... update (incurring a full file re-write and performance hit), or throw exception
@@ -93,7 +104,7 @@ class MarketDataStore:
         finally:
             hdfStore.close()
 
-    def getHDF(self, source_id):
+    def get(self, source_id):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'r')
@@ -106,7 +117,7 @@ class MarketDataStore:
 
     # Remove a node from a hdfFile
     @synchronized
-    def deleteHDF(self, source_id):
+    def delete(self, source_id):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'a')
@@ -114,3 +125,32 @@ class MarketDataStore:
             hdfStore.remove(source_id)
         finally:
             hdfStore.close()
+
+
+class MarketDataStoreRemote():
+
+    def __init__(self, endpoint):
+        self.mdsRemote = PriceStore(endpoint)
+
+    def aggregate(self, start, end, sources, sample_unit, debug=False):
+        start = start if start else "1979-01-01"
+        end = end if end else "2050-01-01"
+        results = self.mdsRemote.aggregate(start, end, sources, sample_unit, debug)
+        if (results["rc"] == "success" and results["body"] is not "null"):
+            return pandas.read_json(results["body"], orient="split")
+        return pandas.DataFrame()
+
+    def get(self, source_id, debug=False):
+        results = self.mdsRemote.get(source_id, debug)
+        if (results["rc"] == "success" and results["body"] is not "null"):
+            return pandas.read_json(results["body"], orient="split")
+        return pandas.DataFrame()
+
+    def append(self, source_id, data, source_sample_unit, update=False, debug=False):
+        if update:
+            return self.mdsRemote.put(source_id, data, source_sample_unit, debug)
+        else:
+            return self.mdsRemote.post(source_id, data, source_sample_unit, debug)
+
+    def delete(self, source_id, debug=False):
+        return self.mdsRemote.delete(source_id, debug)
