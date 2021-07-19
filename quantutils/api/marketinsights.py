@@ -250,17 +250,17 @@ class PriceStore:
 
     def put(self, source_id, data, source_sample_unit, debug=False):
         headers = {
-            'accept': 'application/json'
+            'Content-Type': 'application/json',
         }
         url = "".join([self.endpoint, "/prices/datasource/", source_id, "?unit=", source_sample_unit])
-        return http.put(url=url, headers=headers, data=json.dumps(data), debug=debug)
+        return http.put(url=url, headers=headers, data=data, debug=debug)
 
     def post(self, source_id, data, source_sample_unit, debug=False):
         headers = {
-            'accept': 'application/json'
+            'Content-Type': 'application/json'
         }
         url = "".join([self.endpoint, "/prices/datasource/", source_id, "?unit=", source_sample_unit])
-        return http.post(url=url, headers=headers, data=json.dumps(data), debug=debug)
+        return http.post(url=url, headers=headers, data=data, debug=debug)
 
     def delete(self, source_id, debug=False):
         headers = {
