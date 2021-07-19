@@ -1,85 +1,79 @@
 import pandas
-import json
-import os
 import quantutils.dataset.pipeline as ppl
+from quantutils.core.decorators import synchronized
 
 
 class MarketDataStore:
 
-    def __init__(self, root, sources_file="datasources.json"):
-        # TODO read root from quantutils properties file
-        self.root = root
-        self.sources_file = sources_file
+    def __init__(self, root, hdfFile="data.hdf"):
+        self.hdfFile = root + "/" + hdfFile
 
-    def getDatasources(self):
-        return json.load(open("".join([self.root, "/", self.sources_file])))
+    # Load data from an ordered list of sources
+    def loadMarketData(self, start, end, sources, sample_unit):
 
-    def loadMarketData(self, market_info, sample_unit):
+        hdfStore = pandas.HDFStore(self.hdfFile, 'r')
 
-        marketData = dict()
+        try:
+            marketData = None
 
-        # Loop over datasources...
-        for datasource in self.getDatasources():
+            for source in sources:
 
-            DS_path = self.root + "/" + datasource["name"] + "/"
+                datasource = ''.join(['/', source])
 
-            # Get HDFStore
-            hdfFile = DS_path + datasource["name"] + ".hdf"
-            hdfStore = pandas.HDFStore(hdfFile, 'r')
+                if datasource in hdfStore.keys():
 
-            for market in market_info["markets"]:
+                    print("Loading data from {} in {}.hdf".format(source, self.hdfFile))
 
-                mktSrcs = [mkt["sources"] for mkt in datasource["markets"] if mkt["name"] == market][0]
-
-                for source in mktSrcs:
-
-                    print("Loading {} data from {} in {}.hdf".format(market, source["name"], datasource["name"]))
                     # Load Dataframe from store
-                    tsData = hdfStore[source["name"]]
+                    select_stmt = ''.join(["index>'", start, "' and index<='", end, "'"])
+                    tsData = hdfStore.select(datasource, where=select_stmt)
 
-                    # Crop selected data set to desired ranges
+                    if not tsData.empty:
 
-                    tsData = ppl.cropDate(tsData, market_info["start"], market_info["end"])
+                        # 28/6/21 Move this to before data is saved for performance reasons
+                        # Resample all to dataset sample unit (to introduce nans in all missing periods)
+                        # tsData = ppl.resample(tsData, source["sample_unit"])
 
-                    # 28/6/21 Move this to before data is saved for performance reasons
-                    # Resample all to dataset sample unit (to introduce nans in all missing periods)
-                    # tsData = ppl.resample(tsData, source["sample_unit"])
+                        # Resample to the requested unit
+                        tsData = ppl.resample(tsData, sample_unit)
 
-                    tsData = ppl.resample(tsData, sample_unit)
+                        # 06/06/18
+                        # Remove NaNs and resample again, to remove partial NaN entries before merging
+                        tsData = ppl.removeNaNs(tsData)
+                        tsData = ppl.resample(tsData, sample_unit)
 
-                    # 06/06/18
-                    # Remove NaNs and resample again, to remove partial NaN entries before merging
-                    tsData = ppl.removeNaNs(tsData)
-                    tsData = ppl.resample(tsData, sample_unit)
+                        if marketData is None:
+                            marketData = pandas.DataFrame()
 
-                    if market not in marketData:
-                        marketData[market] = pandas.DataFrame()
-
-                    marketData[market] = ppl.merge(tsData, marketData[market])
-
+                        marketData = ppl.merge(tsData, marketData)
+                else:
+                    raise ValueError('Error: Cannot find datasource: ' + datasource)
+        finally:
             hdfStore.close()
 
         return marketData
 
-    def appendHDF(self, hdfFile, bucket, data, sample_unit, update=False):
+    @synchronized
+    def appendHDF(self, source_id, data, source_sample_unit, update=False):
 
         # Get HDFStore
-        hdfStore = pandas.HDFStore(hdfFile, 'a')
+        hdfStore = pandas.HDFStore(self.hdfFile, 'a')
         append = True
-        # TODO Sort incoming data
+        # Sort incoming data
+        data = data.sort_index()
 
         try:
-            if '/' + bucket in hdfStore.keys():
+            if '/' + source_id in hdfStore.keys():
 
                 # Get first,last row
-                nrows = hdfStore.get_storer(bucket).nrows
-                last = hdfStore.select(bucket, start=nrows - 1, stop=nrows)
+                nrows = hdfStore.get_storer(source_id).nrows
+                last = hdfStore.select(source_id, start=nrows - 1, stop=nrows)
 
                 # If this is entirely beyond the last element in the file... append
                 # If not... update (incurring a full file re-write and performance hit), or throw exception
                 if not data[data.index <= last.index[0]].empty:
                     # Update table with overlapped data
-                    storedData = hdfStore.get(bucket)
+                    storedData = hdfStore.get(source_id)
                     data = ppl.merge(data, storedData)
                     append = False
 
@@ -88,75 +82,35 @@ class MarketDataStore:
                 else:
                     data = ppl.merge(last, data)
 
-            data = ppl.resample(data, sample_unit)
+            data = ppl.resample(data, source_sample_unit)
             if append:
                 print("Appending data...")
-                hdfStore.append(bucket, data, format='table', append=True)
+                hdfStore.append(source_id, data, format='table', append=True)
             else:
                 print("Re-writing table data for update...")
-                hdfStore.put(bucket, data, format='table')
+                hdfStore.put(source_id, data, format='table')
 
         finally:
             hdfStore.close()
 
-    def refreshMarketData(self):
-
-        # Loop over datasources...
-        # TODO: In chronological order
-
-        for datasource in self.getDatasources():
-
-            DS_path = self.root + "/" + datasource["name"] + "/"
-            SRC_path = DS_path + "raw/"
-
-            # Get HDFStore
-            hdfFile = DS_path + datasource["name"] + ".hdf"
-
-            for market in datasource["markets"]:
-
-                for source in market["sources"]:
-
-                    # Loop over any source files...
-                    for infile in os.listdir(SRC_path):
-
-                        if infile.lower().startswith(source["name"].lower()):
-
-                            print("Adding " + infile + " to " + market["name"] + " table")
-
-                            # Load RAW data (assume CSV)
-                            newData = pandas.read_csv(SRC_path + infile,
-                                                      index_col=datasource["index_col"],
-                                                      parse_dates=datasource["parse_dates"],
-                                                      header=None,
-                                                      names=["Date", "Time", "Open", "High", "Low", "Close"],
-                                                      usecols=range(0, 6),
-                                                      skiprows=datasource["skiprows"],
-                                                      dayfirst=datasource["dayfirst"]
-                                                      )
-
-                            if newData is not None:
-
-                                newData = ppl.localize(newData, datasource["timezone"], "UTC")
-
-                                self.appendHDF(hdfFile, source["name"], newData, source["sample_unit"], update=True)
-
-    def getHDF(self, hdfFile, bucket):
+    def getHDF(self, source_id):
 
         # Get HDFStore
-        hdfStore = pandas.HDFStore(hdfFile, 'r')
+        hdfStore = pandas.HDFStore(self.hdfFile, 'r')
         data = None
         try:
-            data = hdfStore.get(bucket)
+            data = hdfStore.get(source_id)
         finally:
             hdfStore.close()
         return data
 
-    # Remove a bucket from a hdfFile
-    def deleteHDF(self, hdfFile, bucket):
+    # Remove a node from a hdfFile
+    @synchronized
+    def deleteHDF(self, source_id):
 
         # Get HDFStore
-        hdfStore = pandas.HDFStore(hdfFile, 'a')
+        hdfStore = pandas.HDFStore(self.hdfFile, 'a')
         try:
-            hdfStore.remove(bucket)
+            hdfStore.remove(source_id)
         finally:
             hdfStore.close()
