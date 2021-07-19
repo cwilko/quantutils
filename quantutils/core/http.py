@@ -14,11 +14,15 @@ def post(url, headers, data, debug=False):
     return sanitise(requests.post(url=url, headers=headers, data=data, timeout=120), url, debug)
 
 
-def delete(url, headers, data, debug=False):
-    return sanitise(requests.delete(url=url, headers=headers, data=data, timeout=120), url, debug)
+def delete(url, headers, debug=False):
+    return sanitise(requests.delete(url=url, headers=headers, timeout=120), url, debug)
 
 
 def sanitise(raw, url, debug):
+
+    if debug:
+        print(url)
+        print(raw)
 
     response = json.loads(raw.text)
 

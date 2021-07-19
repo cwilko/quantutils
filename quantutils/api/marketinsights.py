@@ -227,3 +227,44 @@ class Predictions:
                 query["where"]["timestamp"] = {'lte': parser.parse(end).isoformat()}
 
         return query
+
+
+class PriceStore:
+
+    def __init__(self, endpoint):
+        self.endpoint = endpoint
+
+    def get(self, source_id, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/prices/datasource/", source_id])
+        return http.get(url=url, headers=headers, debug=debug)
+
+    def aggregate(self, start, end, sources, sample_unit, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/prices/aggregate?start=", start, "&end=", end, "&sources=", "&sources=".join(sources), "&unit=", sample_unit])
+        return http.get(url=url, headers=headers, debug=debug)
+
+    def put(self, source_id, data, source_sample_unit, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/prices/datasource/", source_id, "?unit=", source_sample_unit])
+        return http.put(url=url, headers=headers, data=json.dumps(data), debug=debug)
+
+    def post(self, source_id, data, source_sample_unit, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/prices/datasource/", source_id, "?unit=", source_sample_unit])
+        return http.post(url=url, headers=headers, data=json.dumps(data), debug=debug)
+
+    def delete(self, source_id, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/prices/datasource/", source_id])
+        return http.delete(url=url, headers=headers, debug=debug)
