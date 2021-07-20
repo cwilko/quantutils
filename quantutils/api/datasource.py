@@ -71,13 +71,13 @@ class MarketDataStore:
         # Sort incoming data
         data = data.sort_index()
 
-        print("Request to add data to table: " + source_id)
-        print(data)
+        print("Request to add data to table: " + source_id, flush=True)
+        print(data, flush=True)
 
         try:
             if '/' + source_id in hdfStore.keys():
 
-                print("Table found: " + source_id)
+                print("Table found: " + source_id, flush=True)
 
                 # Get first,last row
                 nrows = hdfStore.get_storer(source_id).nrows
@@ -98,20 +98,20 @@ class MarketDataStore:
 
                 data = ppl.resample(data, source_sample_unit)
                 if append:
-                    print("Appending data...")
+                    print("Appending data...", flush=True)
                     hdfStore.append(source_id, data, format='table', append=True)
                 else:
-                    print("Re-writing table data for update...")
+                    print("Re-writing table data for update...", flush=True)
                     hdfStore.put(source_id, data, format='table')
             else:
                 data = ppl.resample(data, source_sample_unit)
-                print("Creating new table for data...")
+                print("Creating new table for data...", flush=True)
                 hdfStore.put(source_id, data, format='table')
 
         finally:
             hdfStore.close()
 
-        print("Update complete")
+        print("Update complete", flush=True)
 
     def get(self, source_id):
 
