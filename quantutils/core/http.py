@@ -3,19 +3,19 @@ import json
 
 
 def get(url, headers, debug=False):
-    return sanitise(requests.get(url=url, headers=headers, timeout=120), url, debug)
+    return sanitise(requests.get(url=url, headers=headers, timeout=300), url, debug)
 
 
 def put(url, headers, data, debug=False):
-    return sanitise(requests.put(url=url, headers=headers, data=data, timeout=120), url, debug)
+    return sanitise(requests.put(url=url, headers=headers, data=data, timeout=300), url, debug)
 
 
 def post(url, headers, data, debug=False):
-    return sanitise(requests.post(url=url, headers=headers, data=data, timeout=120), url, debug)
+    return sanitise(requests.post(url=url, headers=headers, data=data, timeout=300), url, debug)
 
 
 def delete(url, headers, debug=False):
-    return sanitise(requests.delete(url=url, headers=headers, timeout=120), url, debug)
+    return sanitise(requests.delete(url=url, headers=headers, timeout=300), url, debug)
 
 
 def sanitise(raw, url, debug):
@@ -23,6 +23,8 @@ def sanitise(raw, url, debug):
     if debug:
         print(url)
         print(raw)
+        print(raw.text)
+        print(raw.json())
 
     response = json.loads(raw.text)
 
