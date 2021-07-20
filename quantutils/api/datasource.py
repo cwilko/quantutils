@@ -3,6 +3,7 @@ import quantutils.dataset.pipeline as ppl
 from quantutils.core.decorators import synchronized
 from quantutils.api.marketinsights import PriceStore
 import json
+import sys
 
 
 class MarketDataStore:
@@ -112,6 +113,7 @@ class MarketDataStore:
             hdfStore.close()
 
         print("Update complete", flush=True)
+        sys.stdout.flush()
 
     def get(self, source_id):
 
