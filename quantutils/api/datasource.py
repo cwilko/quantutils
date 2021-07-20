@@ -71,15 +71,17 @@ class MarketDataStore:
         # Sort incoming data
         data = data.sort_index()
 
+        print("Request to add data to table: " + source_id)
+        print(data)
+
         try:
             if '/' + source_id in hdfStore.keys():
+
+                print("Table found: " + source_id)
 
                 # Get first,last row
                 nrows = hdfStore.get_storer(source_id).nrows
                 last = hdfStore.select(source_id, start=nrows - 1, stop=nrows)
-
-                print(last)
-                print(data)
 
                 # If this is entirely beyond the last element in the file... append
                 # If not... update (incurring a full file re-write and performance hit), or throw exception
@@ -94,16 +96,22 @@ class MarketDataStore:
                 else:
                     data = ppl.merge(last, data)
 
-            data = ppl.resample(data, source_sample_unit)
-            if append:
-                print("Appending data...")
-                hdfStore.append(source_id, data, format='table', append=True)
+                data = ppl.resample(data, source_sample_unit)
+                if append:
+                    print("Appending data...")
+                    hdfStore.append(source_id, data, format='table', append=True)
+                else:
+                    print("Re-writing table data for update...")
+                    hdfStore.put(source_id, data, format='table')
             else:
-                print("Re-writing table data for update...")
+                data = ppl.resample(data, source_sample_unit)
+                print("Creating new table for data...")
                 hdfStore.put(source_id, data, format='table')
 
         finally:
             hdfStore.close()
+
+        print("Update complete")
 
     def get(self, source_id):
 
