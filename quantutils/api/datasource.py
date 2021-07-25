@@ -32,7 +32,7 @@ class MarketDataStore:
 
                 if datasource in hdfStore.keys():
 
-                    print("Loading data from {} in {}.hdf".format(source, self.hdfFile))
+                    print("Loading data from {} in {}".format(source, self.hdfFile))
 
                     # Load Dataframe from store
                     select_stmt = ''.join(["index>'", start, "' and index<='", end, "'"])
