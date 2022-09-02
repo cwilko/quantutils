@@ -21,6 +21,9 @@ class MarketDataStore:
     # Load data from an ordered list of sources
     def aggregate(self, start, end, sources, sample_unit):
 
+        start = start if start else "1979-01-01"
+        end = end if end else "2050-01-01"
+
         hdfStore = pandas.HDFStore(self.hdfFile, 'r')
 
         try:
@@ -64,7 +67,7 @@ class MarketDataStore:
         return marketData
 
     @synchronized
-    def append(self, source_id, data, source_sample_unit, update=False):
+    def append(self, source_id, data, source_sample_unit, update=False, debug=False):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'a')
@@ -144,8 +147,6 @@ class MarketDataStoreRemote():
         self.mdsRemote = PriceStore(endpoint)
 
     def aggregate(self, start, end, sources, sample_unit, debug=False):
-        start = start if start else "1979-01-01"
-        end = end if end else "2050-01-01"
         results = self.mdsRemote.aggregate(start, end, sources, sample_unit, debug)
         if (results["rc"] == "success" and results["body"] is not None):
             return pandas.read_json(results["body"], orient="split")
