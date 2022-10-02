@@ -3,6 +3,7 @@ import pytz
 import json
 import time
 import hashlib
+import urllib
 import dateutil.parser as parser
 import quantutils.core.http as http
 
@@ -245,7 +246,7 @@ class PriceStore:
         headers = {
             'accept': 'application/json'
         }
-        url = "".join([self.endpoint, "/prices/aggregate?start=", start, "&end=", end, "&sources=", "&sources=".join(sources), "&unit=", sample_unit])
+        url = "".join([self.endpoint, "/prices/aggregate?start=", start, "&end=", end, "&sources=", "&sources=".join([urllib.parse.quote(source) for source in sources]), "&unit=", sample_unit])
         return http.get(url=url, headers=headers, debug=debug)
 
     def put(self, source_id, data, source_sample_unit, debug=False):
@@ -268,3 +269,51 @@ class PriceStore:
         }
         url = "".join([self.endpoint, "/prices/datasource/", source_id])
         return http.delete(url=url, headers=headers, debug=debug)
+
+
+class TradeFramework:
+
+    def __init__(self, endpoint):
+        self.endpoint = endpoint
+
+    def createEnvironment(self, name, tz, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/environments?name=", name, "&tz=", tz])
+        return http.post(url=url, headers=headers, data={}, debug=debug)
+
+    def createPortfolio(self, env_uuid, p_uuid, name, optimizer, opts={}, debug=False):
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        url = "".join([self.endpoint, "/environments/", env_uuid, "/portfolios/", p_uuid, "/portfolios?name=", name, "&optimizer=", optimizer])
+        return http.post(url=url, headers=headers, data=json.dumps({"options": opts}), debug=debug)
+
+    def createModel(self, env_uuid, p_uuid, name, modelType, opts={}, debug=False):
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        url = "".join([self.endpoint, "/environments/", env_uuid, "/portfolios/", p_uuid, "/models?name=", name, "&type=", modelType])
+        return http.post(url=url, headers=headers, data=json.dumps({"options": opts}), debug=debug)
+
+    def appendAsset(self, env_uuid, market, prices, debug=False):
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        url = "".join([self.endpoint, "/environments/", env_uuid, "/assets?market=", market])
+        return http.post(url=url, headers=headers, data=json.dumps(prices), debug=debug)
+
+    def getSignal(self, env_uuid, capital, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/environments/", env_uuid, "/signals?capital=", str(capital)])
+        return http.get(url=url, headers=headers, debug=debug)
+
+    def createPredictions(self, env_uuid, prices, market, capital, debug=False):
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        url = "".join([self.endpoint, "/environments/", env_uuid, "/predictions?capital=", str(capital), "&market=", market])
+        return http.post(url=url, headers=headers, data=json.dumps({"prices": prices}), debug=debug)
