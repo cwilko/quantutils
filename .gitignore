@@ -4,3 +4,5 @@ examples/.ipynb_checkpoints
 pylogmet
 **/cred
 cred
+build
+*.egg-info

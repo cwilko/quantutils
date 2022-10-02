@@ -46,8 +46,11 @@ def cropTime(data, start, end):
 
 def resample(data, sample_unit):
     print("Resampling to %s periods" % sample_unit)
-    order = data.columns
-    return data.resample(sample_unit).agg({'Open': 'first', 'High': lambda x: x.max(skipna=False), 'Low': lambda x: x.min(skipna=False), 'Close': 'last'})[order]
+
+    func = {'Open': 'first', 'High': lambda x: x.max(skipna=False), 'Low': lambda x: x.min(skipna=False), 'Close': 'last'}
+    for col in data.columns.difference(["Open", "High", "Low", "Close"]):
+        func[col] = 'sum'
+    return data.resample(sample_unit).agg(func)[data.columns]
 
 ##
 # Remove Missing Data (NaN)
