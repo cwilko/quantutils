@@ -19,10 +19,7 @@ class MarketDataStore:
         self.hdfFile = location + "/" + hdfFile
 
     # Load data from an ordered list of sources
-    def aggregate(self, start, end, sources, sample_unit):
-
-        start = start if start else "1979-01-01"
-        end = end if end else "2050-01-01"
+    def aggregate(self, sources, sample_unit, start="1979-01-01", end="2050-01-01"):
 
         hdfStore = pandas.HDFStore(self.hdfFile, 'r')
 
@@ -76,7 +73,7 @@ class MarketDataStore:
         data = data.sort_index()
 
         print("Request to add data to table: " + source_id, flush=True)
-        print(data, flush=True)
+        #print(data, flush=True)
 
         try:
             if '/' + source_id in hdfStore.keys():
@@ -129,6 +126,27 @@ class MarketDataStore:
             hdfStore.close()
         return data
 
+    # Vanilla put of any data
+    @synchronized
+    def put(self, source_id, data, update=False):
+
+        # Get HDFStore
+        hdfStore = pandas.HDFStore(self.hdfFile, 'a')
+        print("Request to add data to table: " + source_id, flush=True)
+        #print(data, flush=True)
+        try:
+            if '/' + source_id in hdfStore.keys():
+                storedData = hdfStore.get(source_id)
+                if update:
+                    data = ppl.merge(storedData, data)
+                else:
+                    data = ppl.merge(data, storedData)
+
+            hdfStore.put(source_id, data, format='table')
+        finally:
+            hdfStore.close()
+        return data
+
     # Remove a node from a hdfFile
     @synchronized
     def delete(self, source_id):
@@ -146,7 +164,7 @@ class MarketDataStoreRemote():
     def __init__(self, endpoint):
         self.mdsRemote = PriceStore(endpoint)
 
-    def aggregate(self, start, end, sources, sample_unit, debug=False):
+    def aggregate(self, sources, sample_unit, start, end, debug=False):
         results = self.mdsRemote.aggregate(start, end, sources, sample_unit, debug)
         if (results["rc"] == "success" and results["body"] is not None):
             return pandas.read_json(results["body"], orient="split")
