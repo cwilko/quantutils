@@ -5,3 +5,4 @@ pandas>=0.23.0
 tables==3.6.1
 setuptools>=39.1.0
 python_dateutil>=2.7.3
+MarkupSafe==2.0.1
