@@ -187,20 +187,20 @@ class MarketDataStoreRemote():
     def aggregate(self, sources, sample_unit, start, end, debug=False):
         results = self.mdsRemote.aggregate(start, end, sources, sample_unit, debug)
         if (results["rc"] == "success" and results["body"] is not None):
-            return pandas.read_json(results["body"], orient="split")
+            return pandas.read_json(results["body"], orient="split").set_index(["Date_Time", "ID"])
         return pandas.DataFrame()
 
     def get(self, source_id, debug=False):
         results = self.mdsRemote.get(source_id, debug)
         if (results["rc"] == "success" and results["body"] is not None):
-            return pandas.read_json(results["body"], orient="split")
+            return pandas.read_json(results["body"], orient="split").set_index(["Date_Time", "ID"])
         return pandas.DataFrame()
 
     def append(self, source_id, data, source_sample_unit, update=False, debug=False):
         if update:
-            return self.mdsRemote.put(source_id, data.to_json(orient='split', date_format="iso"), source_sample_unit, debug)
+            return self.mdsRemote.put(source_id, data.reset_index().to_json(orient='split', date_format="iso"), source_sample_unit, debug)
         else:
-            return self.mdsRemote.post(source_id, data.to_json(orient='split', date_format="iso"), source_sample_unit, debug)
+            return self.mdsRemote.post(source_id, data.reset_index().to_json(orient='split', date_format="iso"), source_sample_unit, debug)
 
     def delete(self, source_id, debug=False):
         return self.mdsRemote.delete(source_id, debug)
