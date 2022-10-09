@@ -204,3 +204,6 @@ class MarketDataStoreRemote():
 
     def delete(self, source_id, debug=False):
         return self.mdsRemote.delete(source_id, debug)
+
+    def getKeys(self, debug=False):
+        return self.mdsRemote.getKeys(debug)

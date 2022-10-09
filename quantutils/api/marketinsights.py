@@ -270,6 +270,13 @@ class PriceStore:
         url = "".join([self.endpoint, "/prices/datasource/", source_id])
         return http.delete(url=url, headers=headers, debug=debug)
 
+    def getKeys(self, debug=False):
+        headers = {
+            'accept': 'application/json'
+        }
+        url = "".join([self.endpoint, "/prices/keys"])
+        return http.get(url=url, headers=headers, debug=debug)
+
 
 class TradeFramework:
 
