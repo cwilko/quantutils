@@ -8,7 +8,7 @@ import numpy
 
 def merge(newData, existingData):
     # print("Merging data...")
-    return existingData.combine_first(newData)
+    return existingData.combine_first(newData).astype(existingData.dtypes.to_dict())
 
 ##
 # Shuffle data
@@ -45,7 +45,7 @@ def cropTime(data, start, end):
 
 
 def resample(data, sample_unit):
-    print("Resampling to %s periods" % sample_unit)
+    #print("Resampling to %s periods" % sample_unit)
 
     func = {'Open': 'first', 'High': lambda x: x.max(skipna=False), 'Low': lambda x: x.min(skipna=False), 'Close': 'last'}
     for col in data.columns.difference(["Open", "High", "Low", "Close"]):
@@ -111,10 +111,10 @@ import pytz
 
 
 def localize(data, sourceTZ, targetTZ):
-    print("Converting from " + sourceTZ + " to " + targetTZ)
+    #print("Converting from " + sourceTZ + " to " + targetTZ)
     timezone = pytz.timezone(targetTZ)
-    data.index = data.index.tz_localize(sourceTZ, ambiguous='NaT').tz_convert(timezone)
-    data = data[data.index.notnull()]  # Remove any amiguous timezone rows
+    data = data.tz_localize(sourceTZ, level=0, ambiguous='NaT').tz_convert(timezone, level=0)
+    data = data[data.index.get_level_values(0).notnull()]  # Remove any amiguous timezone rows
     return data
 
 ##
