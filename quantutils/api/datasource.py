@@ -19,7 +19,7 @@ class MarketDataStore:
         self.hdfFile = location + "/" + hdfFile
 
     # Load data from an ordered list of sources
-    def aggregate(self, sources, sample_unit, start="1979-01-01", end="2050-01-01"):
+    def aggregate(self, sources, sample_unit, start="1979-01-01", end="2050-01-01", debug=False):
 
         hdfStore = pandas.HDFStore(self.hdfFile, 'r')
 
@@ -72,13 +72,15 @@ class MarketDataStore:
         # Sort incoming data
         data = data.sort_index()
 
-        print("Request to add data to table: " + source_id, flush=True)
+        if debug:
+            print("Request to add data to table: " + source_id, flush=True)
         #print(data, flush=True)
 
         try:
             if '/' + source_id in hdfStore.keys():
 
-                print("Table found: " + source_id, flush=True)
+                if debug:
+                    print("Table found: " + source_id, flush=True)
 
                 # Get first,last row
                 nrows = hdfStore.get_storer(source_id).nrows
@@ -86,33 +88,42 @@ class MarketDataStore:
 
                 # If this is entirely beyond the last element in the file... append
                 # If not... update (incurring a full file re-write and performance hit), or throw exception
-                if not data[data.index <= last.index[0]].empty:
+                if not data[data.index.get_level_values(0) <= last.index.get_level_values(0)[0]].empty:
                     # Update table with overlapped data
                     storedData = hdfStore.get(source_id)
-                    data = ppl.merge(data, storedData)
+                    # Oct 22 - Switch order of new vs old, i.e. Purposely do an update if update=True
+                    data = ppl.merge(storedData, data)
                     append = False
 
                     if not update:
                         raise ValueError('Error: Entry already exists for data starting at index ' + str(data.index[0]))
-                else:
-                    data = ppl.merge(last, data)
-
-                data = ppl.resample(data, source_sample_unit)
+                # Oct 22 - Moving away from NaN filled tables to sparse
+                # Mainly due to technical limitation on sampling for multiindex dataframes
+                #
+                # else:
+                #    data = ppl.merge(last, data)
+                #
+                #data = ppl.resample(data, source_sample_unit)
                 if append:
-                    print("Appending data...", flush=True)
+                    if debug:
+                        print("Appending data...", flush=True)
                     hdfStore.append(source_id, data, format='table', append=True)
                 else:
-                    print("Re-writing table data for update...", flush=True)
+                    if debug:
+                        print("Re-writing table data for update...", flush=True)
                     hdfStore.put(source_id, data, format='table')
             else:
-                data = ppl.resample(data, source_sample_unit)
-                print("Creating new table for data...", flush=True)
+                # Oct 22 - see above comment
+                #data = ppl.resample(data, source_sample_unit)
+                if debug:
+                    print("Creating new table for data...", flush=True)
                 hdfStore.put(source_id, data, format='table')
 
         finally:
             hdfStore.close()
 
-        print("Update complete", flush=True)
+        if debug:
+            print("Update complete", flush=True)
         sys.stdout.flush()
 
     def get(self, source_id):
@@ -157,6 +168,15 @@ class MarketDataStore:
             hdfStore.remove(source_id)
         finally:
             hdfStore.close()
+
+    def getKeys(self):
+        hdfStore = pandas.HDFStore(self.hdfFile, 'r')
+        data = None
+        try:
+            data = [x[1:] for x in hdfStore.keys()]
+        finally:
+            hdfStore.close()
+        return data
 
 
 class MarketDataStoreRemote():
