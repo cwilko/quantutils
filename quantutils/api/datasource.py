@@ -206,4 +206,7 @@ class MarketDataStoreRemote():
         return self.mdsRemote.delete(source_id, debug)
 
     def getKeys(self, debug=False):
-        return self.mdsRemote.getKeys(debug)
+        results = self.mdsRemote.getKeys(debug)
+        if (results["rc"] == "success" and results["body"] is not None):
+            return results["body"]
+        return None
