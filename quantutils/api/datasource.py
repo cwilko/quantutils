@@ -19,7 +19,7 @@ class MarketDataStore:
         self.hdfFile = location + "/" + hdfFile
 
     # Load data from an ordered list of sources
-    def aggregate(self, sources, sample_unit, start="1979-01-01", end="2050-01-01", debug=False):
+    def aggregate(self, table_id, sources, start="1979-01-01", end="2050-01-01", debug=False):
 
         hdfStore = pandas.HDFStore(self.hdfFile, 'r')
 
@@ -28,32 +28,36 @@ class MarketDataStore:
 
             for source in sources:
 
-                datasource = ''.join(['/', source])
+                datasource = ''.join(['/', table_id])
 
                 if datasource in hdfStore.keys():
 
                     print("Loading data from {} in {}".format(source, self.hdfFile))
 
                     # Load Dataframe from store
-                    select_stmt = ''.join(["index>'", start, "' and index<='", end, "'"])
+                    select_stmt = ''.join(["ID='", source, "' and index>'", start, "' and index<='", end, "'"])
                     tsData = hdfStore.select(datasource, where=select_stmt)
 
                     if not tsData.empty:
 
-                        # 28/6/21 Move this to before data is saved for performance reasons
-                        # Resample all to dataset sample unit (to introduce nans in all missing periods)
-                        # tsData = ppl.resample(tsData, source["sample_unit"])
+                        # Oct '22
+                        # Moving to multi-id tables. All resampling to be performed by client.
+                        # The following no longer applies...
 
-                        # Resample to the requested unit
-                        tsData = ppl.resample(tsData, sample_unit)
+                            # 28/6/21 Move this to before data is saved for performance reasons
+                            # Resample all to dataset sample unit (to introduce nans in all missing periods)
+                            # tsData = ppl.resample(tsData, source["sample_unit"])
 
-                        # 06/06/18
-                        # Remove NaNs and resample again, to remove partial NaN entries before merging
-                        tsData = ppl.removeNaNs(tsData)
-                        tsData = ppl.resample(tsData, sample_unit)
+                            # Resample to the requested unit
+                            #tsData = ppl.resample(tsData, sample_unit)
+
+                            # 06/06/18
+                            # Remove NaNs and resample again, to remove partial NaN entries before merging
+                            #tsData = ppl.removeNaNs(tsData)
+                            #tsData = ppl.resample(tsData, sample_unit)
 
                         if marketData is None:
-                            marketData = pandas.DataFrame()
+                            marketData = pandas.DataFrame(index=pd.MultiIndex(levels=[[], []], codes=[[], []], names=[u'Date_Time', u'ID']))
 
                         marketData = ppl.merge(tsData, marketData)
                 else:
@@ -64,7 +68,7 @@ class MarketDataStore:
         return marketData
 
     @synchronized
-    def append(self, source_id, data, source_sample_unit, update=False, debug=False):
+    def append(self, table_id, data, update=False, debug=False):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'a')
@@ -73,24 +77,24 @@ class MarketDataStore:
         data = data.sort_index()
 
         if debug:
-            print("Request to add data to table: " + source_id, flush=True)
+            print("Request to add data to table: " + table_id, flush=True)
         #print(data, flush=True)
 
         try:
-            if '/' + source_id in hdfStore.keys():
+            if '/' + table_id in hdfStore.keys():
 
                 if debug:
-                    print("Table found: " + source_id, flush=True)
+                    print("Table found: " + table_id, flush=True)
 
                 # Get first,last row
-                nrows = hdfStore.get_storer(source_id).nrows
-                last = hdfStore.select(source_id, start=nrows - 1, stop=nrows)
+                nrows = hdfStore.get_storer(table_id).nrows
+                last = hdfStore.select(table_id, start=nrows - 1, stop=nrows)
 
                 # If this is entirely beyond the last element in the file... append
                 # If not... update (incurring a full file re-write and performance hit), or throw exception
                 if not data[data.index.get_level_values(0) <= last.index.get_level_values(0)[0]].empty:
                     # Update table with overlapped data
-                    storedData = hdfStore.get(source_id)
+                    storedData = hdfStore.get(table_id)
                     # Oct 22 - Switch order of new vs old, i.e. Purposely do an update if update=True
                     data = ppl.merge(storedData, data)
                     append = False
@@ -107,17 +111,17 @@ class MarketDataStore:
                 if append:
                     if debug:
                         print("Appending data...", flush=True)
-                    hdfStore.append(source_id, data, format='table', append=True)
+                    hdfStore.append(table_id, data, format='table', append=True)
                 else:
                     if debug:
                         print("Re-writing table data for update...", flush=True)
-                    hdfStore.put(source_id, data, format='table')
+                    hdfStore.put(table_id, data, format='table')
             else:
                 # Oct 22 - see above comment
                 #data = ppl.resample(data, source_sample_unit)
                 if debug:
                     print("Creating new table for data...", flush=True)
-                hdfStore.put(source_id, data, format='table')
+                hdfStore.put(table_id, data, format='table')
 
         finally:
             hdfStore.close()
@@ -126,46 +130,46 @@ class MarketDataStore:
             print("Update complete", flush=True)
         sys.stdout.flush()
 
-    def get(self, source_id):
+    def get(self, table_id):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'r')
         data = None
         try:
-            data = hdfStore.get(source_id)
+            data = hdfStore.get(table_id)
         finally:
             hdfStore.close()
         return data
 
     # Vanilla put of any data
     @synchronized
-    def put(self, source_id, data, update=False):
+    def put(self, table_id, data, update=False):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'a')
-        print("Request to add data to table: " + source_id, flush=True)
+        print("Request to add data to table: " + table_id, flush=True)
         #print(data, flush=True)
         try:
-            if '/' + source_id in hdfStore.keys():
-                storedData = hdfStore.get(source_id)
+            if '/' + table_id in hdfStore.keys():
+                storedData = hdfStore.get(table_id)
                 if update:
                     data = ppl.merge(storedData, data)
                 else:
                     data = ppl.merge(data, storedData)
 
-            hdfStore.put(source_id, data, format='table')
+            hdfStore.put(table_id, data, format='table')
         finally:
             hdfStore.close()
         return data
 
     # Remove a node from a hdfFile
     @synchronized
-    def delete(self, source_id):
+    def delete(self, table_id):
 
         # Get HDFStore
         hdfStore = pandas.HDFStore(self.hdfFile, 'a')
         try:
-            hdfStore.remove(source_id)
+            hdfStore.remove(table_id)
         finally:
             hdfStore.close()
 
@@ -184,26 +188,26 @@ class MarketDataStoreRemote():
     def __init__(self, endpoint):
         self.mdsRemote = PriceStore(endpoint)
 
-    def aggregate(self, sources, sample_unit, start, end, debug=False):
-        results = self.mdsRemote.aggregate(start, end, sources, sample_unit, debug)
+    def aggregate(self, table_id, sources, start, end, debug=False):
+        results = self.mdsRemote.aggregate(table_id, sources, start, end, debug)
         if (results["rc"] == "success" and results["body"] is not None):
             return pandas.read_json(results["body"], orient="split").set_index(["Date_Time", "ID"])
         return pandas.DataFrame()
 
-    def get(self, source_id, debug=False):
-        results = self.mdsRemote.get(source_id, debug)
+    def get(self, table_id, debug=False):
+        results = self.mdsRemote.get(table_id, debug)
         if (results["rc"] == "success" and results["body"] is not None):
             return pandas.read_json(results["body"], orient="split").set_index(["Date_Time", "ID"])
         return pandas.DataFrame()
 
-    def append(self, source_id, data, source_sample_unit, update=False, debug=False):
+    def append(self, table_id, data, update=False, debug=False):
         if update:
-            return self.mdsRemote.put(source_id, data.reset_index().to_json(orient='split', date_format="iso"), source_sample_unit, debug)
+            return self.mdsRemote.put(table_id, data.reset_index().to_json(orient='split', date_format="iso"), debug)
         else:
-            return self.mdsRemote.post(source_id, data.reset_index().to_json(orient='split', date_format="iso"), source_sample_unit, debug)
+            return self.mdsRemote.post(table_id, data.reset_index().to_json(orient='split', date_format="iso"), debug)
 
-    def delete(self, source_id, debug=False):
-        return self.mdsRemote.delete(source_id, debug)
+    def delete(self, table_id, debug=False):
+        return self.mdsRemote.delete(table_id, debug)
 
     def getKeys(self, debug=False):
         results = self.mdsRemote.getKeys(debug)
