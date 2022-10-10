@@ -35,7 +35,7 @@ class MarketDataStore:
                     print("Loading data from {} in {}".format(source, self.hdfFile))
 
                     # Load Dataframe from store
-                    select_stmt = ''.join(["ID='", source, "' and index>'", start, "' and index<='", end, "'"])
+                    select_stmt = ''.join(["ID='", source, "' and Date_Time>'", start, "' and Date_Time<='", end, "'"])
                     tsData = hdfStore.select(datasource, where=select_stmt)
 
                     if not tsData.empty:
@@ -57,7 +57,7 @@ class MarketDataStore:
                             #tsData = ppl.resample(tsData, sample_unit)
 
                         if marketData is None:
-                            marketData = pandas.DataFrame(index=pd.MultiIndex(levels=[[], []], codes=[[], []], names=[u'Date_Time', u'ID']))
+                            marketData = pandas.DataFrame(index=pandas.MultiIndex(levels=[[], []], codes=[[], []], names=[u'Date_Time', u'ID']))
 
                         marketData = ppl.merge(tsData, marketData)
                 else:
