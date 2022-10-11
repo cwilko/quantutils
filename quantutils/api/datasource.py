@@ -188,7 +188,7 @@ class MarketDataStoreRemote():
     def __init__(self, endpoint):
         self.mdsRemote = PriceStore(endpoint)
 
-    def aggregate(self, table_id, sources, start, end, debug=False):
+    def aggregate(self, table_id, sources, start="1979-01-01", end="2050-01-01", debug=False):
         results = self.mdsRemote.aggregate(table_id, sources, start, end, debug)
         if (results["rc"] == "success" and results["body"] is not None):
             return pandas.read_json(results["body"], orient="split").set_index(["Date_Time", "ID"])
