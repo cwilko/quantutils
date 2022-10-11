@@ -191,13 +191,13 @@ class MarketDataStoreRemote():
     def aggregate(self, table_id, sources, start="1979-01-01", end="2050-01-01", debug=False):
         results = self.mdsRemote.aggregate(table_id, sources, start, end, debug)
         if (results["rc"] == "success" and results["body"] is not None):
-            return pandas.read_json(results["body"], orient="split").set_index(["Date_Time", "ID"])
+            return pandas.read_json(results["body"], orient="split", dtype=False).set_index(["Date_Time", "ID"])
         return pandas.DataFrame()
 
     def get(self, table_id, debug=False):
         results = self.mdsRemote.get(table_id, debug)
         if (results["rc"] == "success" and results["body"] is not None):
-            return pandas.read_json(results["body"], orient="split").set_index(["Date_Time", "ID"])
+            return pandas.read_json(results["body"], orient="split", dtype=False).set_index(["Date_Time", "ID"])
         return pandas.DataFrame()
 
     def append(self, table_id, data, update=False, debug=False):
