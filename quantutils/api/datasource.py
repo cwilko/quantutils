@@ -111,17 +111,17 @@ class MarketDataStore:
                 if append:
                     if debug:
                         print("Appending data...", flush=True)
-                    hdfStore.append(table_id, data, format='table', append=True)
+                    hdfStore.append(table_id, data, min_itemsize={"values": 50}, format='table', append=True)
                 else:
                     if debug:
                         print("Re-writing table data for update...", flush=True)
-                    hdfStore.put(table_id, data, format='table')
+                    hdfStore.put(table_id, data, min_itemsize={"values": 50}, format='table')
             else:
                 # Oct 22 - see above comment
                 #data = ppl.resample(data, source_sample_unit)
                 if debug:
                     print("Creating new table for data...", flush=True)
-                hdfStore.put(table_id, data, format='table')
+                hdfStore.put(table_id, data, min_itemsize={"values": 50}, format='table')
 
         finally:
             hdfStore.close()
@@ -157,7 +157,7 @@ class MarketDataStore:
                 else:
                     data = ppl.merge(data, storedData)
 
-            hdfStore.put(table_id, data, format='table')
+            hdfStore.put(table_id, data, min_itemsize={"values": 50}, format='table')
         finally:
             hdfStore.close()
         return data
