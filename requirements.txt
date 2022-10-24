@@ -6,3 +6,6 @@ tables==3.6.1
 setuptools>=39.1.0
 python_dateutil>=2.7.3
 MarkupSafe==2.0.1
+py-vollib==1.0.1
+py-vollib-vectorized==0.1.1
+
