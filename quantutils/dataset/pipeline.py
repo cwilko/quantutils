@@ -186,27 +186,10 @@ def intersect(data1, data2):
     return [data1.loc[isect], data2.loc[isect], isect]
 
 ##
-# Visualise
-##
-
-
-def visualise(data, periods, count):
-
-    import plotly.offline as py
-    import plotly.figure_factory as ff
-
-    py.init_notebook_mode()  # run at the start of every ipython notebook
-
-    csticks = data.values[0:count:, :periods * 4].ravel().reshape(-1, 4)
-
-    fig = ff.create_candlestick(csticks[:, 0], csticks[:, 1], csticks[:, 2], csticks[:, 3])
-
-    py.iplot(fig, filename='jupyter/simple-candlestick', validate=True)
-
-
-##
 # Save data
 ##
+
+
 def save_hdf(data, bucket, hdfStore):
     hdfStore.put(bucket, data, format='table')
     print("Saved data to HDFStore: /" + bucket)

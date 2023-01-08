@@ -3,9 +3,7 @@ from setuptools import setup, find_packages
 
 import os
 
-os.system('pip install git+https://github.com/locke105/pylogmet.git')
-os.system('pip install plotly')
-os.system('pip install ibm-cos-sdk')
+#os.system('pip install git+https://github.com/locke105/pylogmet.git')
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -40,11 +38,11 @@ setup(
     install_requires=requirements,
 
     extras_require={
-        'stats': ['matplotlib>=2.2.2', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'scipy>=1.1.0', 'statsmodels>=0.9.0'],
-        'ml': ['tensorflow==1.3.0'],
-        'options': ['py-vollib-vectorized>=0.1']
+        'stats': ['scipy>=1.1.0', 'statsmodels>=0.9.0'],
+        'ml': ['tensorflow==1.3.0', 'ibm-cos-sdk'],
+        'options': ['py-vollib-vectorized>=0.1'],
+        'plot': ['matplotlib>=2.2.2', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'python-highcharts @ git+https://github.com/cwilko/python-highcharts.git']
     },
-
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
