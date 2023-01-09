@@ -44,8 +44,9 @@ def cropTime(data, start, end):
 ##
 
 
-def resample(data, sample_unit):
-    #print("Resampling to %s periods" % sample_unit)
+def resample(data, sample_unit, debug=False):
+    if debug:
+        print("Resampling to %s periods" % sample_unit)
 
     func = {'Open': 'first', 'High': lambda x: x.max(skipna=False), 'Low': lambda x: x.min(skipna=False), 'Close': 'last'}
     for col in data.columns.difference(["Open", "High", "Low", "Close"]):
