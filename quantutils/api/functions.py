@@ -1,12 +1,14 @@
 import json
 import pandas
 import requests
-from quantutils.api.bluemix import Token
 
 
 class Functions:
 
     def __init__(self, credentials_store):
+
+        from quantutils.api.bluemix import Token
+
         self.credentials = credentials_store.getSecrets('functions_cred')
         self.token = Token(credentials_store).getToken()
 
