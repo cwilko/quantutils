@@ -3,10 +3,7 @@ import pandas as pd
 from scipy import stats
 import quantutils.backtest.strategies as strategies
 import quantutils.core.timeseries as tms
-import matplotlib.pyplot as plt
-from matplotlib.dates import date2num
-from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
-from mpl_finance import candlestick_ohlc
+
 import statsmodels.api as sm
 from scipy.stats import norm
 
@@ -138,38 +135,6 @@ def ARIMA(ts, pnl, predictStart, predictEnd):
                     print("ARIMA:{}{}{}, AIC:{}, MFE:{}, MAE:{}".format(AR, I, MA, arima_model.aic, mean_forecast_err(series, predict), mean_absolute_err(series, predict)))
                 except:
                     print("Failed to fit {}{}{}".format(AR, I, MA))
-
-
-def plot(ts, pnl, f=1):
-    plt.figure(0)
-    plt.title("Strategy Returns")
-    plt.plot(np.cumsum(np.log(1 + (pnl * f))))
-    plt.show()
-
-    # DATA PLOT
-    fig = plt.figure(1)
-    mondays = WeekdayLocator(MONDAY)        # major ticks on the mondays
-    alldays = DayLocator()              # minor ticks on the days
-    weekFormatter = DateFormatter('%b %d')  # e.g., Jan 12
-    # dayFormatter = DateFormatter('%d')      # e.g., 12
-
-    fig, ax = plt.subplots()
-    fig.subplots_adjust(bottom=0.2)
-    ax.xaxis.set_major_locator(mondays)
-    ax.xaxis.set_minor_locator(alldays)
-    ax.xaxis.set_major_formatter(weekFormatter)
-    # ax.xaxis.set_minor_formatter(dayFormatter)
-
-    #plot_day_summary(ax, quotes, ticksize=3)
-    ts['d'] = ts.index.map(date2num)
-
-    candlestick_ohlc(ax, ts[['d', 'Open', 'High', 'Low', 'Close']].astype('float32').values, width=0.6)
-
-    ax.xaxis_date()
-    ax.autoscale_view()
-    plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
-    plt.title("Underlying Security Prices")
-    plt.show()
 
 
 def merton(model_ret, baseline_ret, display=False):
