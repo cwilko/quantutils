@@ -4,7 +4,32 @@
 from highcharts import Highstock
 
 
-class Chart:
+class OHLCChart:
+
+    options = {
+        'yAxis': [{
+            'type': 'logarithmic',
+            'crosshair': {
+                    'snap': False
+            },
+            'labels': {
+                'align': 'right',
+                'x': -3
+            },
+            'title': {
+                'text': 'OHLC'
+            },
+            'height': '80%',
+            'lineWidth': 2,
+        }, {
+            'height': '20%',
+            'lineWidth': 2,
+        }],
+        'xAxis': [{
+            'crosshair': True,
+            'ordinal': False
+        }],
+    }
 
     modules = [
         "https://code.highcharts.com/stock/indicators/indicators-all.js",
@@ -20,35 +45,61 @@ class Chart:
         "https://code.highcharts.com/css/annotations/popup.css"
     ]
 
-    groupingUnits = [
-        [
-            'minute',
-            [1, 5, 15, 30]
-        ], [
-            'hour',
-            [1, 4]
-        ], [
-            'day',
-            [1]
-        ], [
-            'week',
-            [1]
-        ], [
-            'month',
-            [1]
-        ]
-    ]
+    rangeSelector = {
+        'rangeSelector': {
+            'dropdown': 'always',
+            'buttons': [
+                {
+                    'type': 'hour',
+                    'count': 120,
+                    'text': 'Hourly',
+                    'dataGrouping': {
+                        'units': [['hour', [1]]]
+                    }
+                },
+                {
+                    'type': 'day',
+                    'count': 30 * 12,
+                    'text': 'Daily',
+                    'dataGrouping': {
+                        'units': [['day', [1]]]
+                    }
+                },
+                {
+                    'type': 'week',
+                    'count': 4 * 52,
+                    'text': 'Weekly',
+                    'dataGrouping': {
+                        'units': [['week', [1]]]
+                    }
+                },
+                {
+                    'type': 'month',
+                    'count': 12 * 5,
+                    'text': 'Monthly',
+                    'dataGrouping': {
+                        'units': [['month', [1]]]
+                    }
+                }
+            ]
+        }
+    }
 
-    def __init__(self, options):
+    def __init__(self, options=None):
         self.chart = Highstock()
         self.chart.add_JSsource(self.modules)
         self.chart.add_CSSsource(self.css)
-        self.chart.set_dict_options(options)
+        self.chart.set_dict_options(self.rangeSelector)
+        if options:
+            self.option = options
+        self.chart.set_dict_options(self.options)
+        self.indicatorCount = 0
 
     def addSeries(self, name, ohlc, type='candlestick', yAxis=0):
-        self.chart.add_data_set(ohlc, type, name=name, id=name + "_id", yAxis=yAxis, dataGrouping={
-            'units': self.groupingUnits
-        })
+        self.chart.add_data_set(ohlc, type, name=name, id=name, yAxis=yAxis)
+
+    def addIndicator(self, name, type, linkedTo, params, yAxis=1):
+        self.chart.add_data_set([], type, name, linkedTo=linkedTo, params=params, dataGrouping={"enabled": False}, yAxis=yAxis)
 
     def getChart(self):
         return self.chart
