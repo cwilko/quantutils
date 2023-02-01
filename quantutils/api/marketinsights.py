@@ -230,54 +230,6 @@ class Predictions:
         return query
 
 
-class PriceStore:
-
-    def __init__(self, endpoint):
-        self.endpoint = endpoint
-
-    def get(self, table_id, debug=False):
-        headers = {
-            'accept': 'application/json'
-        }
-        url = "".join([self.endpoint, "/prices/datasource/", table_id])
-        return http.get(url=url, headers=headers, debug=debug)
-
-    def aggregate(self, table_id, sources, start, end, debug=False):
-        headers = {
-            'accept': 'application/json'
-        }
-        url = "".join([self.endpoint, "/prices/aggregate/", table_id, "?start=", start, "&end=", end, "&sources=", "&sources=".join([urllib.parse.quote(source) for source in sources])])
-        return http.get(url=url, headers=headers, debug=debug)
-
-    def put(self, table_id, data, debug=False):
-        headers = {
-            'Content-Type': 'application/json',
-        }
-        url = "".join([self.endpoint, "/prices/datasource/", table_id])
-        return http.put(url=url, headers=headers, data=data, debug=debug)
-
-    def post(self, table_id, data, debug=False):
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        url = "".join([self.endpoint, "/prices/datasource/", table_id])
-        return http.post(url=url, headers=headers, data=data, debug=debug)
-
-    def delete(self, table_id, debug=False):
-        headers = {
-            'accept': 'application/json'
-        }
-        url = "".join([self.endpoint, "/prices/datasource/", table_id])
-        return http.delete(url=url, headers=headers, debug=debug)
-
-    def getKeys(self, debug=False):
-        headers = {
-            'accept': 'application/json'
-        }
-        url = "".join([self.endpoint, "/prices/keys"])
-        return http.get(url=url, headers=headers, debug=debug)
-
-
 class TradeFramework:
 
     def __init__(self, endpoint):
