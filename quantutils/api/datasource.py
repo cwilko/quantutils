@@ -4,8 +4,8 @@ import quantutils.core.http as http
 
 class MIDataStoreRemote:
 
-    def __init__(self, endpoint):
-        self.mdsRemote = PriceStoreAPI(endpoint)
+    def __init__(self, location):
+        self.mdsRemote = PriceStoreAPI(location)
 
     def aggregate(self, table_id, sources, start="1979-01-01", end="2050-01-01", debug=False):
         results = self.mdsRemote.aggregate(table_id, sources, start, end, debug)
