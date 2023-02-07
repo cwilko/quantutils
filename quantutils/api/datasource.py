@@ -1,4 +1,5 @@
 import pandas
+from urllib.parse import quote
 import quantutils.core.http as http
 
 
@@ -51,7 +52,7 @@ class PriceStoreAPI:
         headers = {
             'accept': 'application/json'
         }
-        url = "".join([self.endpoint, "/prices/aggregate/", table_id, "?start=", start, "&end=", end, "&sources=", "&sources=".join([urllib.parse.quote(source) for source in sources])])
+        url = "".join([self.endpoint, "/prices/aggregate/", table_id, "?start=", start, "&end=", end, "&sources=", "&sources=".join([quote(source) for source in sources])])
         return http.get(url=url, headers=headers, debug=debug)
 
     def put(self, table_id, data, debug=False):
