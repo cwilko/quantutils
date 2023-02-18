@@ -114,8 +114,8 @@ import pytz
 def localize(data, sourceTZ, targetTZ):
     #print("Converting from " + sourceTZ + " to " + targetTZ)
     timezone = pytz.timezone(targetTZ)
-    data = data.tz_localize(sourceTZ, level=0, ambiguous='NaT').tz_convert(timezone, level=0)
-    data = data[data.index.get_level_values(0).notnull()]  # Remove any amiguous timezone rows
+    data = data.tz_localize(sourceTZ, level="Date_Time", ambiguous='NaT').tz_convert(timezone, level="Date_Time")
+    data = data[data.index.get_level_values("Date_Time").notnull()]  # Remove any amiguous timezone rows
     return data
 
 ##
