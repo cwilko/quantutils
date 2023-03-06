@@ -6,3 +6,4 @@ pylogmet
 cred
 build
 *.egg-info
+.pytest_cache
