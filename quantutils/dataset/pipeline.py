@@ -1,5 +1,6 @@
 import pandas
 import numpy
+import pytz
 
 ##
 # Merge data
@@ -104,11 +105,6 @@ def onehot(labels, threshold=0):
     a[(labels >= threshold).flatten()] = labels[labels >= threshold]
     b[((1 - labels) > threshold).flatten()] = 1 - labels[(1 - labels) > threshold]
     return numpy.array([a, b]).T
-
-##
-# Convert to local time zone
-##
-import pytz
 
 
 def localize(data, sourceTZ, targetTZ):

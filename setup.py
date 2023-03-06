@@ -41,7 +41,7 @@ setup(
         'stats': ['scipy>=1.1.0', 'statsmodels>=0.9.0'],
         'ml': ['tensorflow==1.3.0', 'ibm-cos-sdk'],
         'options': ['py-vollib-vectorized>=0.1'],
-        'plot': ['matplotlib>=2.2.2', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'python-highcharts @ git+https://github.com/cwilko/python-highcharts.git']
+        'plot': ['matplotlib>=2.2.2,<=3.5', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'python-highcharts @ git+https://github.com/cwilko/python-highcharts.git']
     },
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().

@@ -1,11 +1,10 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
-import quantutils.backtest.strategies as strategies
 import quantutils.core.timeseries as tms
-
 import statsmodels.api as sm
 from scipy.stats import norm
+from statsmodels.tsa.stattools import adfuller
 
 
 def sharpe(x):
@@ -14,6 +13,8 @@ def sharpe(x):
 
 def getStats(x):
     return [x.mean(), x.var(), sharpe(x)]
+
+# Stats on returns ts
 
 
 def statistics(ts):
@@ -37,24 +38,29 @@ def statistics(ts):
     print("Optimal Kelly Stake : {}".format(f))
 
 
-def tests(sim, ts, level):
+def statistical_tests(ts, sim, level):
     # SIGNIFICANCE TESTS
-    confIntervals(ts, level)
     MCMC(sim, ts)
     testRandom(sim, ts, level)
+    confIntervals(ts, level)
 
 
 # MONTE CARLO SIMULATION (BOOTSTRAP)
-def bootstrap(ts, iterations=1000, txCost=0, log=False):
+def bootstrap(ts, iterations=1000, txCost=0):
     print()
     print("Bootstrapping...")
-    df = pd.DataFrame([getStats(ts.groupby(pd.TimeGrouper(freq='B')).apply(strategies.random_selection, txCost)) for i in range(0, iterations)], columns=['Mean', 'Var', 'Sharpe'])
-
+    df = pd.DataFrame([getStats(ts.assign(result=lambda x: random_selection(x, txCost))["result"]) for i in range(0, iterations)], columns=['Mean', 'Var', 'Sharpe'])
     print("Completed {} iterations".format(iterations))
     print("Simulated Population Mean = {}".format(df['Mean'].mean()))
     print("Simulated Population Variance = {}".format(df['Var'].mean()))
 
     return df
+
+
+def random_selection(x, txCost):
+    direction = np.array([random.choice([-1, 1]) for i in range(len(x))])
+    returns = direction * ((x["Close"] - x["Open"] - txCost) / x["Open"])
+    return returns
 
 # TEST SIGNIFICANTLY DIFFERENT SHARPE RATIO FROM RANDOM SELECTION
 
@@ -63,7 +69,8 @@ def MCMC(sim, ts):
     strat_sh = sharpe(ts)
     print()
     print("MCMC")
-    print("Percent of Population greater than Strategy Sharpe {}%".format(100 * sum(sim['Sharpe'][sim['Sharpe'] > strat_sh]) / len(sim)))
+    # TODO: Shouldn't "sum" be "len"?
+    print("Percent of Population greater than Strategy Sharpe {}%".format(100 * len(sim['Sharpe'][sim['Sharpe'] > strat_sh]) / len(sim)))
     return
 
 
@@ -79,6 +86,8 @@ def testRandom(sim, ts, level):
     sim_m = sim['Mean'].mean()
     sim_s = np.sqrt(sim['Var'].mean())
 
+    print()
+    print("Test for Random Distribution...")
     print()
     print("H0 : Strategy Returns = Random")
     print("H1 : Strategy Returns > Random")
@@ -103,7 +112,7 @@ def confIntervals(ts, level=.95):
     n_score = stats.norm.ppf(((1 + level) / 2)) * strat_s / np.sqrt(n)
 
     print()
-    print("CONFIDENCE LEVELS : {}".format(level * 100))
+    print("CONFIDENCE LEVELS : {}%".format(level * 100))
     print("Mean Return : {}".format(strat_m))
     print("Mean Return Confidence Intervals (T Dist): {}".format(strat_m - t_score, strat_m + t_score))
     print("Mean Return Confidence Intervals (Norm Dist): {}".format(strat_m - n_score, strat_m + n_score))
@@ -162,3 +171,7 @@ def merton(model_ret, baseline_ret, display=False):
         print("")
 
     return p, p_value
+
+
+def adf_test(x):
+    return adfuller(x)
