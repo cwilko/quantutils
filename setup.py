@@ -39,7 +39,7 @@ setup(
 
     extras_require={
         'stats': ['scipy>=1.1.0', 'statsmodels>=0.9.0'],
-        'ml': ['tensorflow==1.3.0', 'ibm-cos-sdk'],
+        'ml': ['tensorflow==2.9.3', 'ibm-cos-sdk'],
         'options': ['py-vollib-vectorized>=0.1'],
         'plot': ['matplotlib>=2.2.2,<3.6', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'python-highcharts @ git+https://github.com/cwilko/python-highcharts.git']
     },
