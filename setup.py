@@ -28,7 +28,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0',  # Required
+    version='0.0.1',  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -41,7 +41,7 @@ setup(
         'stats': ['scipy>=1.1.0', 'statsmodels>=0.9.0'],
         'ml': ['tensorflow==1.3.0', 'ibm-cos-sdk'],
         'options': ['py-vollib-vectorized>=0.1'],
-        'plot': ['matplotlib>=2.2.2,<=3.5', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'python-highcharts @ git+https://github.com/cwilko/python-highcharts.git']
+        'plot': ['matplotlib>=2.2.2,<3.6', 'mpl_finance>=0.10.0', 'plotly>=3.1.1', 'python-highcharts @ git+https://github.com/cwilko/python-highcharts.git']
     },
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().

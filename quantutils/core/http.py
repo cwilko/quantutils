@@ -22,17 +22,18 @@ def sanitise(raw, url, debug):
 
     if debug:
         print(url)
-        print(raw)
-        print(raw.text)
-        print(raw.json())
+        # print(raw[:100])
+        # print(raw.text[:100])
+        # print(raw.json())
 
     response = json.loads(raw.text)
 
     if debug:
         print(raw.url)
-        print(response)
+        print("RESPONSE " + str(len(response)) + " length")
 
     if not bool(response) or (("httpCode" in response) and (response["httpCode"] is not "200")):
+        print("ERROR: NO HTTP CODE")
         raise Exception("Error in http response: ", url, response)
 
     return response
