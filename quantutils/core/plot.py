@@ -96,10 +96,17 @@ class OHLCChart:
         self.indicatorCount = 0
 
     def addSeries(self, name, ohlc, type='candlestick', yAxis=0):
+        ohlc = ohlc.reset_index() \
+            .assign(Date_Time=lambda x: x.astype('int64') // 10**6) \
+            [["Date_Time", "Open", "High", "Low", "Close"]] \
+            .values.tolist()
+
         self.chart.add_data_set(ohlc, type, name=name, id=name, yAxis=yAxis)
+        return self.chart
 
     def addIndicator(self, name, type, linkedTo, params, yAxis=1):
         self.chart.add_data_set([], type, name, linkedTo=linkedTo, params=params, dataGrouping={"enabled": False}, yAxis=yAxis)
+        return self.chart
 
     def getChart(self):
         return self.chart
