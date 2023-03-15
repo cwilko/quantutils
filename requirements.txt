@@ -1,6 +1,6 @@
 pytz>=2017.3 # needed by pandas 1.3.5
-numpy>=1.19.0
-pandas>=1.1.5
+numpy>=1.19,<=1.23.5
+pandas>=1.1,<=1.5.3
 toolz>=0.12.0
 setuptools>=67.5.1
 python_dateutil>=2.8.2
