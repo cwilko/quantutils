@@ -38,7 +38,7 @@ def cropDate(data, start="1979-01-01", end="2050-01-01"):
 
 
 def cropTime(data, start, end):
-    return data.between_time(start, end, include_start=True, include_end=False)
+    return data.between_time(start, end, inclusive="left")
 
 ##
 # Resample
@@ -110,8 +110,11 @@ def onehot(labels, threshold=0):
 def localize(data, sourceTZ, targetTZ):
     #print("Converting from " + sourceTZ + " to " + targetTZ)
     timezone = pytz.timezone(targetTZ)
-    if not data.tz:
+    if not hasattr(data.index, "tz"):
         data = data.tz_localize(sourceTZ, level="Date_Time", ambiguous='NaT')
+    elif not sourceTZ == "UTC":
+        raise Exception("Unknown sourceTZ")
+
     data = data.tz_convert(timezone, level="Date_Time")
     data = data[data.index.get_level_values("Date_Time").notnull()]  # Remove any amiguous timezone rows
     return data
