@@ -110,6 +110,7 @@ def onehot(labels, threshold=0):
 def localize(data, sourceTZ, targetTZ):
     #print("Converting from " + sourceTZ + " to " + targetTZ)
     timezone = pytz.timezone(targetTZ)
+    print("NEW")
     if not hasattr(data.index, "tz"):
         data = data.tz_localize(sourceTZ, level="Date_Time", ambiguous='NaT')
     elif not sourceTZ == "UTC":
