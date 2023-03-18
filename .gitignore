@@ -1,6 +1,6 @@
 **/*.pyc
 *~
-examples/.ipynb_checkpoints
+.ipynb_checkpoints
 pylogmet
 **/cred
 cred
