@@ -110,7 +110,6 @@ def onehot(labels, threshold=0):
 def localize(data, sourceTZ, targetTZ):
     #print("Converting from " + sourceTZ + " to " + targetTZ)
     timezone = pytz.timezone(targetTZ)
-    print("NEW")
     if not hasattr(data.index, "tz"):
         data = data.tz_localize(sourceTZ, level="Date_Time", ambiguous='NaT')
     elif not sourceTZ == "UTC":
@@ -204,3 +203,37 @@ def save_csv(data, filename):
     print("Saved data to " + filename)
 
     return data
+
+
+def compare(df1: object, df2: object) -> object:
+    "Compare two dataframes"
+
+    try:
+        return df1.compare(df2)
+    except:
+        print("Could not compare dataframes with pandas. Retrying with other methods...")
+
+    if not df1.equals(df2):
+        print("Pandas shows dataframes are not equal")
+
+    print("Length of df1: " + str(len(df1)))
+    print("Length of df2: " + str(len(df2)))
+    if len(df1) != len(df2):
+        print("Lengths do not match!")
+
+        if (len(df1) > len(df2)):
+            x = df1.join(df2, lsuffix='_df1', rsuffix="_df2")
+            x = x[x.isna().any(axis=1)]
+        else:
+            x = df2.join(df1, lsuffix='_df2', rsuffix="_df1")
+            x = x[x.isna().any(axis=1)]
+        print("Showing differing rows: ")
+        display(x)
+
+    else:
+        print("Lengths match")
+
+        print("Showing element-wise comparison")
+        x = df1[df1 == df2]
+        display(x)
+        return x
