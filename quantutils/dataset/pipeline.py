@@ -37,7 +37,11 @@ def cropDate(data, start="1979-01-01", end="2050-01-01"):
     return data[start:end]
 
 
-def cropTime(data, start, end):
+def cropTime(data, start=None, end=None):
+    if not start:
+        start = "00:00"
+    if not end:
+        end = "23:59:59"
     return data.between_time(start, end, inclusive="left")
 
 ##
@@ -82,6 +86,7 @@ def reshape(ts, n):
 def encode(data, encoding):
     nanIndex = data.isnull().any(axis=1)
     if (encoding == "binary"):
+        # Is close (index -1) higher that open (index 0)
         df = pandas.DataFrame((data.values[:, -1] > data.values[:, 0]).astype(float), data.index)
     if (encoding == "one-hot"):
         df = pandas.DataFrame(numpy.column_stack
