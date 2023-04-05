@@ -1,5 +1,3 @@
-
-
 # Highcharts-based visualisation class
 from highcharts import Highstock
 
@@ -7,28 +5,21 @@ from highcharts import Highstock
 class OHLCChart:
 
     options = {
-        'yAxis': [{
-            'type': 'logarithmic',
-            'crosshair': {
-                    'snap': False
+        "yAxis": [
+            {
+                "type": "logarithmic",
+                "crosshair": {"snap": False},
+                "labels": {"align": "right", "x": -3},
+                "title": {"text": "OHLC"},
+                "height": "80%",
+                "lineWidth": 2,
             },
-            'labels': {
-                'align': 'right',
-                'x': -3
+            {
+                "height": "20%",
+                "lineWidth": 2,
             },
-            'title': {
-                'text': 'OHLC'
-            },
-            'height': '80%',
-            'lineWidth': 2,
-        }, {
-            'height': '20%',
-            'lineWidth': 2,
-        }],
-        'xAxis': [{
-            'crosshair': True,
-            'ordinal': False
-        }],
+        ],
+        "xAxis": [{"crosshair": True, "ordinal": False}],
     }
 
     modules = [
@@ -37,51 +28,43 @@ class OHLCChart:
         "https://code.highcharts.com/modules/annotations-advanced.js",
         "https://code.highcharts.com/modules/price-indicator.js",
         "https://code.highcharts.com/modules/full-screen.js",
-        "https://code.highcharts.com/modules/stock-tools.js"
+        "https://code.highcharts.com/modules/stock-tools.js",
     ]
 
     css = [
         "https://code.highcharts.com/css/stocktools/gui.css",
-        "https://code.highcharts.com/css/annotations/popup.css"
+        "https://code.highcharts.com/css/annotations/popup.css",
     ]
 
     rangeSelector = {
-        'rangeSelector': {
-            'dropdown': 'always',
-            'buttons': [
+        "rangeSelector": {
+            "dropdown": "always",
+            "buttons": [
                 {
-                    'type': 'hour',
-                    'count': 120,
-                    'text': 'Hourly',
-                    'dataGrouping': {
-                        'units': [['hour', [1]]]
-                    }
+                    "type": "hour",
+                    "count": 120,
+                    "text": "Hourly",
+                    "dataGrouping": {"units": [["hour", [1]]]},
                 },
                 {
-                    'type': 'day',
-                    'count': 30 * 12,
-                    'text': 'Daily',
-                    'dataGrouping': {
-                        'units': [['day', [1]]]
-                    }
+                    "type": "day",
+                    "count": 30 * 12,
+                    "text": "Daily",
+                    "dataGrouping": {"units": [["day", [1]]]},
                 },
                 {
-                    'type': 'week',
-                    'count': 4 * 52,
-                    'text': 'Weekly',
-                    'dataGrouping': {
-                        'units': [['week', [1]]]
-                    }
+                    "type": "week",
+                    "count": 4 * 52,
+                    "text": "Weekly",
+                    "dataGrouping": {"units": [["week", [1]]]},
                 },
                 {
-                    'type': 'month',
-                    'count': 12 * 5,
-                    'text': 'Monthly',
-                    'dataGrouping': {
-                        'units': [['month', [1]]]
-                    }
-                }
-            ]
+                    "type": "month",
+                    "count": 12 * 5,
+                    "text": "Monthly",
+                    "dataGrouping": {"units": [["month", [1]]]},
+                },
+            ],
         }
     }
 
@@ -95,17 +78,28 @@ class OHLCChart:
         self.chart.set_dict_options(self.options)
         self.indicatorCount = 0
 
-    def addSeries(self, name, ohlc, type='candlestick', yAxis=0):
-        ohlc = ohlc.reset_index() \
-            .assign(Date_Time=lambda x: x.astype('int64') // 10**6) \
-            [["Date_Time", "Open", "High", "Low", "Close"]] \
+    def addSeries(self, name, ohlc, type="candlestick", yAxis=0):
+        ohlc = (
+            ohlc.reset_index()
+            .assign(Date_Time=lambda x: x["Date_Time"].astype("int64") // 10**6)[
+                ["Date_Time", "Open", "High", "Low", "Close"]
+            ]
             .values.tolist()
+        )
 
         self.chart.add_data_set(ohlc, type, name=name, id=name, yAxis=yAxis)
         return self.chart
 
     def addIndicator(self, name, type, linkedTo, params, yAxis=1):
-        self.chart.add_data_set([], type, name, linkedTo=linkedTo, params=params, dataGrouping={"enabled": False}, yAxis=yAxis)
+        self.chart.add_data_set(
+            [],
+            type,
+            name,
+            linkedTo=linkedTo,
+            params=params,
+            dataGrouping={"enabled": False},
+            yAxis=yAxis,
+        )
         return self.chart
 
     def getChart(self):
@@ -125,16 +119,19 @@ def visualise(data, periods, count):
 
     py.init_notebook_mode()  # run at the start of every ipython notebook
 
-    csticks = data.values[0:count:, :periods * 4].ravel().reshape(-1, 4)
+    csticks = data.values[0:count:, : periods * 4].ravel().reshape(-1, 4)
 
-    fig = ff.create_candlestick(csticks[:, 0], csticks[:, 1], csticks[:, 2], csticks[:, 3])
+    fig = ff.create_candlestick(
+        csticks[:, 0], csticks[:, 1], csticks[:, 2], csticks[:, 3]
+    )
 
-    py.iplot(fig, filename='jupyter/simple-candlestick', validate=True)
+    py.iplot(fig, filename="jupyter/simple-candlestick", validate=True)
 
 
 ##
 # taken from core.statistics
 ##
+
 
 def plot(ts, pnl, f=1):
 
@@ -151,9 +148,9 @@ def plot(ts, pnl, f=1):
 
     # DATA PLOT
     fig = plt.figure(1)
-    mondays = WeekdayLocator(MONDAY)        # major ticks on the mondays
-    alldays = DayLocator()              # minor ticks on the days
-    weekFormatter = DateFormatter('%b %d')  # e.g., Jan 12
+    mondays = WeekdayLocator(MONDAY)  # major ticks on the mondays
+    alldays = DayLocator()  # minor ticks on the days
+    weekFormatter = DateFormatter("%b %d")  # e.g., Jan 12
     # dayFormatter = DateFormatter('%d')      # e.g., 12
 
     fig, ax = plt.subplots()
@@ -163,13 +160,17 @@ def plot(ts, pnl, f=1):
     ax.xaxis.set_major_formatter(weekFormatter)
     # ax.xaxis.set_minor_formatter(dayFormatter)
 
-    #plot_day_summary(ax, quotes, ticksize=3)
-    ts['d'] = ts.index.map(date2num)
+    # plot_day_summary(ax, quotes, ticksize=3)
+    ts["d"] = ts.index.map(date2num)
 
-    candlestick_ohlc(ax, ts[['d', 'Open', 'High', 'Low', 'Close']].astype('float32').values, width=0.6)
+    candlestick_ohlc(
+        ax,
+        ts[["d", "Open", "High", "Low", "Close"]].astype("float32").values,
+        width=0.6,
+    )
 
     ax.xaxis_date()
     ax.autoscale_view()
-    plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment='right')
+    plt.setp(plt.gca().get_xticklabels(), rotation=45, horizontalalignment="right")
     plt.title("Underlying Security Prices")
     plt.show()
