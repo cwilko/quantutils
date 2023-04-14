@@ -162,7 +162,32 @@ def mean_forecast_err(y, yhat):
 
 
 def mean_absolute_err(y, yhat):
-    return np.mean((np.abs(y.sub(yhat).mean()) / yhat))  # or percent error = * 100
+    return np.mean(np.abs(y.sub(yhat)))
+
+
+def mean_squared_err(y, yhat, ddof=0):
+    return np.sum(np.square(y.sub(yhat))) / (len(y) - ddof)
+
+
+def residual_standard_error(y, yhat, ddof=0):
+    return np.sqrt(mean_squared_err(y, yhat, ddof))
+
+
+def mean_absolute_percentage_error(y, yhat):
+    return np.mean(np.abs(y.sub(yhat) / y))
+
+
+def mean_absolute_standard_error(y, yhat):
+    naive_mae = mean_absolute_err(y[1:], y.shift()[1:])
+    return np.mean(np.abs(y.sub(yhat)) / naive_mae)
+
+
+def mean_directional_accuracy(y, yhat):
+    return np.mean((np.sign(y.diff()[1:]) == np.sign(yhat - y.shift())[1:]).astype(int))
+
+
+def mean_sign_accuracy(y, yhat):
+    return np.mean((np.sign(y) == np.sign(yhat)).astype(int))
 
 
 def ARIMAFit(ts, order=None, display=True):
