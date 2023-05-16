@@ -18,24 +18,32 @@ def getStats(x):
 # Stats on returns ts
 
 
-def statistics(ts):
+# TODO : Add model performance stats to this portfolio performance summary
+def statistics(ts, baseline=None):
     m = ts.mean()
     s = ts.std()
     f = ts.mean() / (ts.std() ** 2)
     Sh = (m / s) * np.sqrt(252)
+    if baseline is not None:
+        # IR = ((m - baseline.mean()) * 252) / ((ts - baseline).std() * np.sqrt(252))
+        IR = (m - baseline.mean()) * np.sqrt(252) / (ts - baseline).std()
     maxDD, maxDDD = tms.maxDD(np.cumprod(1 + ts))
 
     print()
-    print("## RESULTS ##")
+    print("=================================================")
+    print("Portfolio Metrics")
+    print("=================================================")
     print()
-    print("Sharpe Ratio (annualised) : {}".format(Sh))
-    print("Mean Return (annualised) : {}%".format(m * 252 * 100))
-    print("Standard Deviation (annualised) : {}%".format(s * np.sqrt(252) * 100))
-    print("Maximum Drawdown (f=1) : {}%".format(maxDD * 100))
-    print("Maximum Drawdown Duration (f=1) : {} periods".format(maxDDD))
-    print("Max Return : {}%".format(max(ts) * 100))
-    print("Min Return : {}%".format(min(ts) * 100))
-    print("Optimal Kelly Stake : {}".format(f))
+    print(f"Sharpe Ratio (annualised) : {Sh:.2f}")
+    if baseline is not None:
+        print(f"Information Ratio (annualised) : {IR:.2f}")
+    print(f"Mean Return (annualised) : {m * 252:.2%}")
+    print(f"Standard Deviation (annualised) : {s * np.sqrt(252):.2%}")
+    print(f"Maximum Drawdown (f=1) : {maxDD:.2%}")
+    print(f"Maximum Drawdown Duration (f=1) : {int(maxDDD)} periods")
+    print(f"Max Return : {max(ts):.2%}")
+    print(f"Min Return : {min(ts):.2%}")
+    print(f"Optimal Kelly Stake : {f}")
 
 
 # Note:
@@ -191,7 +199,6 @@ def mean_sign_accuracy(y, yhat):
 
 
 def ARIMAFit(ts, order=None, display=True):
-
     if not order:  # Search orders
         bestAIC = np.inf
         for AR in range(0, 5):
@@ -230,7 +237,6 @@ def ARIMAFit(ts, order=None, display=True):
 
 
 def merton(model_ret, baseline_ret, display=False):
-
     theta = model_ret.values
     Z = baseline_ret.loc[model_ret.index].values
 
